@@ -222,7 +222,7 @@ export const ContactCard: React.FC<ContactCardProps> = ({ isDark }) => {
       {/* Footer Bottom Bar */}
       <div className="mt-16 pt-8 border-t border-zinc-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
         <div>
-          © {new Date().getFullYear()} Dhanvin Makwana. Built with Next.js 16+, React, Motion, WebGL & Lenis.
+          Designed & Developed by <span className={isDark ? "text-zinc-300 font-medium" : "text-zinc-700 font-medium"}>Makwana Industries</span>
         </div>
         <div className="flex items-center gap-4">
           <span>AI Engineer & Data Scientist</span>

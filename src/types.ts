@@ -37,9 +37,25 @@ export interface EducationItem {
   highlights: string[];
 }
 
-export interface SkillCategory {
+export interface CompetencySkill {
+  name: string;
+  description: string;
+  technologies: string[];
+  projectId?: string;
+}
+
+export interface CompetencyTier {
+  id: string;
+  label: string;
   title: string;
-  skills: { name: string; level: number; iconName?: string }[];
+  theme: 'purple' | 'blue' | 'emerald';
+  skills: CompetencySkill[];
+}
+
+export interface TechStackCategory {
+  category: string;
+  iconName: string;
+  items: string[];
 }
 
 export interface SocialLink {

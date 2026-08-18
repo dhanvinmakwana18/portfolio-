@@ -19,7 +19,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const navItems = [
     { id: 'hero', label: 'Overview' },
     { id: 'projects', label: 'Projects' },
-    { id: 'skills', label: 'Skills & Physics' },
+    { id: 'skills', label: 'Skills' },
     { id: 'experience', label: 'Experience' },
     { id: 'about', label: 'About' },
     { id: 'contact', label: 'Contact' },

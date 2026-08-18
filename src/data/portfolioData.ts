@@ -1,4 +1,4 @@
-import { Project, ExperienceItem, EducationItem, SkillCategory, SocialLink } from '../types';
+import { Project, ExperienceItem, EducationItem, CompetencyTier, TechStackCategory, SocialLink } from '../types';
 
 export const PERSONAL_INFO = {
   name: "Dhanvin Makwana",
@@ -118,71 +118,154 @@ export const EDUCATION: EducationItem[] = [
   }
 ];
 
-export const SKILL_CATEGORIES: SkillCategory[] = [
+export const COMPETENCY_TIERS: CompetencyTier[] = [
   {
-    title: "Machine Learning & Deep Learning",
+    id: "advanced-ai",
+    label: "TIER 01 · ADVANCED AI",
+    title: "Advanced AI & Generative AI",
+    theme: "purple",
     skills: [
-      { name: "PyTorch", level: 94 },
-      { name: "TensorFlow / Keras", level: 88 },
-      { name: "Deep Neural Networks (CNNs, RNNs, ViT)", level: 92 },
-      { name: "scikit-learn", level: 96 },
-      { name: "XGBoost & LightGBM", level: 90 },
-      { name: "Statistical Modeling & EDA", level: 95 }
+      {
+        name: "Artificial Intelligence",
+        description: "Designing intelligent systems using modern machine learning and deep learning techniques.",
+        technologies: ["Python", "PyTorch", "TensorFlow", "Neural Networks"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "LLMs & Transformers",
+        description: "Building generative and conversational architectures with transformer-based language models.",
+        technologies: ["Transformers", "Hugging Face", "Prompt Engineering", "LangChain"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "Generative AI",
+        description: "Developing multimodal generation pipelines, synthetic data engines, and fine-tuned models.",
+        technologies: ["Generative AI Studio", "Stable Diffusion", "LLMs", "Embeddings"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "Agentic AI & RAG",
+        description: "Architecting autonomous agents with vector retrieval, knowledge graphs, and tool execution.",
+        technologies: ["RAG", "Vector Search", "ChromaDB", "LangGraph"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "Computer Vision",
+        description: "Real-time object detection, segmentation, and visual classification systems.",
+        technologies: ["OpenCV", "YOLO", "CNNs", "Vision Transformers"],
+        projectId: "vision-pulse"
+      }
     ]
   },
   {
-    title: "Large Language Models & GenAI",
+    id: "core-ml-datascience",
+    label: "TIER 02 · CORE ENGINE",
+    title: "Machine Learning & Core Data Science",
+    theme: "blue",
     skills: [
-      { name: "LLMs & Prompt Engineering", level: 95 },
-      { name: "LangChain & LangGraph", level: 92 },
-      { name: "LlamaIndex & RAG Architectures", level: 90 },
-      { name: "Transformers (Hugging Face)", level: 93 },
-      { name: "Vector Databases (Qdrant, Chroma)", level: 90 },
-      { name: "Model Quantization & vLLM", level: 86 }
+      {
+        name: "Machine Learning",
+        description: "Supervised and unsupervised algorithmic modeling, regression, and classification pipelines.",
+        technologies: ["scikit-learn", "XGBoost", "LightGBM", "Model Evaluation"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "Deep Learning",
+        description: "Designing and training deep multi-layer neural architectures for complex representations.",
+        technologies: ["PyTorch", "TensorFlow", "Keras", "Backpropagation"],
+        projectId: "vision-pulse"
+      },
+      {
+        name: "Python",
+        description: "Core language ecosystem for scalable AI modeling, data pipelines, and backend APIs.",
+        technologies: ["Python", "NumPy", "Pandas", "FastAPI"],
+        projectId: "nexus-llm"
+      },
+      {
+        name: "Statistics & Mathematics",
+        description: "Probability distributions, hypothesis testing, linear algebra, and calculus foundations.",
+        technologies: ["Statistical Inference", "Optimization", "Multivariate Analysis"],
+        projectId: "projects"
+      },
+      {
+        name: "Data Science",
+        description: "End-to-end scientific methodology translating unstructured data into predictive intelligence.",
+        technologies: ["Feature Engineering", "Model Tuning", "Cross-Validation"],
+        projectId: "projects"
+      }
     ]
   },
   {
-    title: "Computer Vision & Edge AI",
+    id: "data-engineering",
+    label: "TIER 03 · PIPELINE & QUALITY",
+    title: "Data Engineering & Data Quality",
+    theme: "emerald",
     skills: [
-      { name: "OpenCV", level: 94 },
-      { name: "YOLO (v5/v8/v9) Object Detection", level: 95 },
-      { name: "Image Segmentation & Classification", level: 90 },
-      { name: "TensorRT & ONNX Optimization", level: 85 },
-      { name: "CUDA Acceleration Basics", level: 82 }
-    ]
-  },
-  {
-    title: "Engineering & MLOps Stack",
-    skills: [
-      { name: "Python (NumPy, Pandas, SciPy)", level: 98 },
-      { name: "FastAPI & REST APIs", level: 90 },
-      { name: "Docker & Containerization", level: 86 },
-      { name: "Git & Version Control", level: 92 },
-      { name: "SQL & Relational Databases", level: 88 },
-      { name: "TypeScript & React / Next.js", level: 84 }
+      {
+        name: "Data Wrangling",
+        description: "Transforming messy raw sources into structured, queryable analytical formats.",
+        technologies: ["Pandas", "NumPy", "ETL Workflows"],
+        projectId: "projects"
+      },
+      {
+        name: "Exploratory Data Analysis",
+        description: "Uncovering underlying data patterns, anomalies, distributions, and correlations.",
+        technologies: ["EDA", "Statistical Summaries", "Visual Profiling"],
+        projectId: "projects"
+      },
+      {
+        name: "Data Cleaning",
+        description: "Handling missing variables, deduplication, outlier treatment, and data normalization.",
+        technologies: ["Imputation", "Outlier Detection", "Schema Validation"],
+        projectId: "projects"
+      },
+      {
+        name: "Data Preparation",
+        description: "Feature encoding, scaling, tokenization, and dataset splitting for ML ingestion.",
+        technologies: ["Scaling & Normalization", "One-Hot Encoding", "Tokenization"],
+        projectId: "projects"
+      },
+      {
+        name: "SQL & Data Pipelines",
+        description: "Relational database querying, schema structuring, and automated ingestion pipelines.",
+        technologies: ["SQL", "PostgreSQL", "Query Optimization", "Database Design"],
+        projectId: "projects"
+      }
     ]
   }
 ];
 
-export const PHYSICS_TECH_CHIPS = [
-  { text: "PyTorch", category: "framework", color: "#ee4c2c" },
-  { text: "TensorFlow", category: "framework", color: "#ff6f00" },
-  { text: "LLMs", category: "core", color: "#3b82f6" },
-  { text: "Agentic RAG", category: "core", color: "#8b5cf6" },
-  { text: "Computer Vision", category: "core", color: "#10b981" },
-  { text: "YOLOv8/v9", category: "vision", color: "#06b6d4" },
-  { text: "OpenCV", category: "vision", color: "#ef4444" },
-  { text: "Transformers", category: "nlp", color: "#f59e0b" },
-  { text: "LangChain", category: "nlp", color: "#14b8a6" },
-  { text: "FastAPI", category: "tool", color: "#059669" },
-  { text: "Python", category: "lang", color: "#3776ab" },
-  { text: "scikit-learn", category: "framework", color: "#f97316" },
-  { text: "Docker", category: "tool", color: "#2496ed" },
-  { text: "TensorRT", category: "vision", color: "#76b900" },
-  { text: "CUDA", category: "core", color: "#76b900" },
-  { text: "Qdrant VectorDB", category: "tool", color: "#ec4899" },
-  { text: "Deep Learning", category: "core", color: "#6366f1" },
-  { text: "Hugging Face", category: "nlp", color: "#ffd21e" }
+export const TECH_STACK_GROUPS: TechStackCategory[] = [
+  {
+    category: "Languages",
+    iconName: "Code2",
+    items: ["Python", "SQL", "R"]
+  },
+  {
+    category: "ML / Deep Learning",
+    iconName: "Brain",
+    items: ["PyTorch", "TensorFlow", "Keras", "scikit-learn"]
+  },
+  {
+    category: "LLM / AI",
+    iconName: "Sparkles",
+    items: ["Transformers", "RAG", "Vector Search", "AI Agents"]
+  },
+  {
+    category: "Computer Vision",
+    iconName: "Eye",
+    items: ["OpenCV", "YOLO", "CNNs"]
+  },
+  {
+    category: "Data",
+    iconName: "Database",
+    items: ["NumPy", "Pandas", "Matplotlib", "Seaborn"]
+  },
+  {
+    category: "Engineering",
+    iconName: "Terminal",
+    items: ["Git", "GitHub", "Linux", "REST APIs", "Docker"]
+  }
 ];
 
 export const SOCIAL_LINKS: SocialLink[] = [

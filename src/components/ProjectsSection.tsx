@@ -50,6 +50,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
           return (
             <motion.div
               key={project.id}
+              id={project.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
