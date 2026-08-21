@@ -12,3 +12,4 @@ plots/
 mlruns/
 mlflow.db
 .pytest_cache/
+inference.db
