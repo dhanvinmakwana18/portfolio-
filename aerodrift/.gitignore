@@ -1,0 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Models
+data/*.csv
+models/
+plots/
+
+# MLflow
+mlruns/
+mlflow.db
+.pytest_cache/
