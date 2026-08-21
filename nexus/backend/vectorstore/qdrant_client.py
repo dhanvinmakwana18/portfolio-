@@ -20,25 +20,27 @@ class VectorStore:
 
     def add_texts(self, texts: list[str], metadatas: list[dict]):
         embeddings = embedding_provider.embed_texts(texts)
+        ids = [str(uuid.uuid4()) for _ in texts]
         points = [
             PointStruct(
-                id=str(uuid.uuid4()),
+                id=doc_id,
                 vector=emb,
                 payload={"text": text, **meta}
             )
-            for text, emb, meta in zip(texts, embeddings, metadatas)
+            for text, emb, meta, doc_id in zip(texts, embeddings, metadatas, ids)
         ]
         self.client.upsert(collection_name=self.collection_name, points=points)
+        return ids
 
     def search(self, query: str, limit: int = 5, filters: dict = None):
         query_vector = embedding_provider.embed_text(query)
         # Note: Filtering is omitted for simplicity in MVP, but can be added via Filter
-        search_result = self.client.search(
+        search_result = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=limit,
             with_payload=True
         )
-        return [{"score": hit.score, "payload": hit.payload} for hit in search_result]
+        return [{"score": hit.score, "payload": hit.payload, "id": hit.id} for hit in search_result.points]
 
 vector_store = VectorStore()

@@ -1,32 +1,44 @@
 from vectorstore.qdrant_client import vector_store
-from sentence_transformers import CrossEncoder
-
-try:
-    reranker_model = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L-2-v2")
-except Exception as e:
-    reranker_model = None
-    print(f"Failed to load reranker: {e}")
+from vectorstore.bm25_store import bm25_store
+from services.rag import (
+    transform_query,
+    reciprocal_rank_fusion,
+    reranker_service,
+    assemble_context
+)
 
 def retrieve_documents(query: str, limit: int = 5):
-    # 1. Query Analysis / Transformation (Basic)
-    optimized_query = query.strip()
+    """
+    Retrieves documents using True Hybrid Search (Dense + Sparse),
+    fuses candidates, reranks, and assembles the context.
+    Returns: (context_string, sources_list)
+    """
+    # 1. Query Analysis / Transformation
+    optimized_query = transform_query(query)
     
-    # 2. Dense Retrieval (Top K candidates)
+    if not optimized_query:
+        return "", []
+        
+    # Sync BM25 on first run if needed
+    if not bm25_store._is_synced:
+        bm25_store.sync_from_qdrant(vector_store)
+
+    # 2. Dense & Sparse Retrieval
     dense_candidates = vector_store.search(optimized_query, limit=20)
-    if not dense_candidates:
-        return []
-        
-    # 3. Candidate Merge & Reranking
-    if reranker_model:
-        # Prepare pairs for cross-encoder
-        pairs = [[optimized_query, doc['payload']['text']] for doc in dense_candidates]
-        scores = reranker_model.predict(pairs)
-        
-        # Merge scores back and sort
-        for idx, score in enumerate(scores):
-            dense_candidates[idx]['rerank_score'] = float(score)
-            
-        dense_candidates.sort(key=lambda x: x['rerank_score'], reverse=True)
+    sparse_candidates = bm25_store.search(optimized_query, limit=20)
     
-    # 4. Return Top N
-    return dense_candidates[:limit]
+    if not dense_candidates and not sparse_candidates:
+        return "", []
+        
+    # 3. Candidate Fusion (RRF)
+    fused_candidates = reciprocal_rank_fusion(dense_candidates, sparse_candidates, limit=20)
+    
+    # 4. Reranking
+    reranked_candidates = reranker_service.rerank(optimized_query, fused_candidates, limit=limit)
+    
+    # 5. Context Assembly
+    # We apply a low relevance threshold to filter out complete garbage.
+    # If the reranker is down, it uses base RRF scores which are >0.
+    context, sources = assemble_context(reranked_candidates, relevance_threshold=-10.0)
+    
+    return context, sources

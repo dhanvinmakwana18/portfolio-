@@ -45,11 +45,9 @@ def execute_agent(query: str) -> AgentState:
     
     if "retrieve_documents" in state.tools_selected:
         try:
-            docs = retrieve_documents(query, limit=5)
-            sources = docs
-            context = "\n".join([f"[Source {i+1}] (File: {d['payload']['source']}, Page: {d['payload']['page']}):\n{d['payload']['text']}" for i, d in enumerate(docs)])
-            state.add_trace("Execute", f"Retrieved {len(docs)} documents")
-            state.observations.append({"tool": "retrieve_documents", "result": f"Found {len(docs)} documents"})
+            context, sources = retrieve_documents(query, limit=5)
+            state.add_trace("Execute", f"Retrieved {len(sources)} documents")
+            state.observations.append({"tool": "retrieve_documents", "result": f"Found {len(sources)} documents"})
         except Exception as e:
             state.add_trace("Error", f"Retrieval failed: {str(e)}")
             
@@ -66,8 +64,18 @@ def execute_agent(query: str) -> AgentState:
             "Always cite your sources using [Source X] notation. NEVER fabricate a source."
         )
         prompt = f"Context:\n{context}\n\nQuery: {query}" if context else f"Query: {query}"
-        state.response = llm_provider.generate(prompt=prompt, system_prompt=system_prompt)
-        state.add_trace("Respond", "Generated response via LLM")
+        
+        try:
+            raw_response = llm_provider.generate(prompt=prompt, system_prompt=system_prompt)
+            if "RAG" in intent and sources:
+                from services.rag import validate_citations
+                state.response = validate_citations(raw_response, sources)
+            else:
+                state.response = raw_response
+            state.add_trace("Respond", "Generated response via LLM")
+        except Exception as e:
+            state.response = f"Error generating response: {e}"
+            state.add_trace("Error", str(e))
         
     # Return structure
     return state, sources

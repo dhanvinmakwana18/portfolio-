@@ -28,14 +28,13 @@ async def chat_endpoint(request: QueryRequest):
     state, source_docs = execute_agent(request.query)
     
     sources = []
-    for i, res in enumerate(source_docs):
-        payload = res['payload']
+    for res in source_docs:
         sources.append({
-            "id": i+1,
-            "filename": payload.get('source', 'Unknown'),
-            "page": payload.get('page', '?'),
-            "text": payload.get('text', '')[:200] + "...",
-            "score": res.get('score', 0)
+            "id": res.get("id"),
+            "filename": res.get("filename", "Unknown"),
+            "page": res.get("page", "?"),
+            "text": res.get("text", "")[:200] + "...",
+            "score": res.get("score", 0)
         })
         
     latency = round(time.time() - start_time, 2)
