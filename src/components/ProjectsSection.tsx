@@ -158,20 +158,34 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
                   </button>
 
                   <div className="flex items-center gap-2">
-                    {project.liveDemoUrl && (
+                    {project.liveUrl ? (
                       <a
-                        href={project.liveDemoUrl}
+                        href={project.liveUrl}
                         target="_blank"
                         rel="noreferrer"
-                        aria-label="View live demo"
-                        className={`p-2.5 rounded-full border transition-colors ${
+                        aria-label="Open Live Project"
+                        title="Open Live Project"
+                        className={`p-2.5 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                           isDark
-                            ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
-                            : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300'
+                            ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700 focus:ring-offset-zinc-900'
+                            : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300 focus:ring-offset-white'
                         }`}
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
+                    ) : (
+                      <button
+                        disabled
+                        aria-label="Live demo coming soon"
+                        title="Live demo coming soon"
+                        className={`p-2.5 rounded-full border cursor-not-allowed ${
+                          isDark
+                            ? 'bg-zinc-800/40 text-zinc-600 border-zinc-800/40'
+                            : 'bg-zinc-100/50 text-zinc-400 border-zinc-200/50'
+                        }`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
                     )}
                     {project.githubUrl && (
                       <a
@@ -179,10 +193,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
                         target="_blank"
                         rel="noreferrer"
                         aria-label="View source code on GitHub"
-                        className={`p-2.5 rounded-full border transition-colors ${
+                        title="View source code on GitHub"
+                        className={`p-2.5 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                           isDark
-                            ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700'
-                            : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300'
+                            ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700 focus:ring-offset-zinc-900'
+                            : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300 focus:ring-offset-white'
                         }`}
                       >
                         <Github className="w-4 h-4" />

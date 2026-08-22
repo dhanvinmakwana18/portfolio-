@@ -163,38 +163,56 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
           {/* Modal Actions */}
           <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-800">
-            <div className="flex gap-3">
-              {project.liveDemoUrl && (
-                <a
-                  href={project.liveDemoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold border transition-all ${
-                    isDark
-                      ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700'
-                      : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-300 shadow-sm'
-                  }`}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>View Live Demo</span>
-                </a>
-              )}
-              {project.githubUrl && (
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold border transition-all ${
-                    isDark
-                      ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700'
-                      : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-300 shadow-sm'
-                  }`}
-                >
-                  <Github className="w-4 h-4" />
-                  <span>View Repository</span>
-                </a>
-              )}
-            </div>
+              <div className="flex gap-3">
+                {project.liveUrl ? (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Live Project"
+                    title="Open Live Project"
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isDark
+                        ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700 focus:ring-offset-zinc-900'
+                        : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-300 shadow-sm focus:ring-offset-white'
+                    }`}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Live Project</span>
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    aria-label="Live demo coming soon"
+                    title="Live demo coming soon"
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold border cursor-not-allowed ${
+                      isDark
+                        ? 'bg-zinc-800/40 text-zinc-500 border-zinc-800/40'
+                        : 'bg-zinc-100/50 text-zinc-400 border-zinc-200/50 shadow-sm'
+                    }`}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Live Project</span>
+                  </button>
+                )}
+                {project.githubUrl && (
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="View source code on GitHub"
+                    title="View source code on GitHub"
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold border transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isDark
+                        ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700 focus:ring-offset-zinc-900'
+                        : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-300 shadow-sm focus:ring-offset-white'
+                    }`}
+                  >
+                    <Github className="w-4 h-4" />
+                    <span>View Repository</span>
+                  </a>
+                )}
+              </div>
 
             <button
               onClick={onClose}

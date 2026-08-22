@@ -13,7 +13,7 @@ export interface Project {
   keyFeatures: string[];
   architectureOverview: string;
   githubUrl?: string;
-  liveDemoUrl?: string;
+  liveUrl?: string;
   image: string;
   badge: string;
 }

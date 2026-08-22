@@ -43,7 +43,7 @@ export const PROJECTS: Project[] = [
     ],
     architectureOverview: "Client UI / REST -> FastAPI Gateway -> Agent Orchestrator (LangChain / LangGraph) -> Dense/BM25 Hybrid Retrieval (Qdrant & Cross-Encoder Reranker) -> LLM Inference Pipeline (Open-source / OpenAI / Gemini) -> Real-time Token Streaming.",
     githubUrl: "https://github.com/DhanvinMakwana/NexusLLM-Agentic-RAG",
-    liveDemoUrl: "https://nexus-llm-demo.internal",
+    liveUrl: "",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
   },
   {
@@ -72,7 +72,7 @@ export const PROJECTS: Project[] = [
     ],
     architectureOverview: "RTSP Video Stream -> OpenCV Hardware Decoded Buffer -> TensorRT Pre-processing -> YOLOv8 Attention Backbone -> NMS & Spatial Filtering -> WebSocket Event Dispatcher & Dashboard.",
     githubUrl: "https://github.com/DhanvinMakwana/VisionPulse-Edge-Perception",
-    liveDemoUrl: "https://vision-pulse-demo.internal",
+    liveUrl: "",
     image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80"
   }
 ];
