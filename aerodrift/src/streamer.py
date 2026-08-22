@@ -2,20 +2,25 @@ import pandas as pd
 import requests
 import time
 import os
+import argparse
+import numpy as np
 
 API_URL = "http://localhost:8000/predict"
 
-def stream_data(csv_path="../data/test_data.csv", delay_seconds=0.1, max_requests=100):
+def stream_data(mode: str, csv_path: str, delay_seconds: float = 0.05, max_requests: int = 100):
     if not os.path.exists(csv_path):
         print(f"File not found: {csv_path}")
         return
         
     df = pd.read_csv(csv_path)
-    # Sort by cycle across all machines to simulate time progression
     df = df.sort_values(by=['cycle', 'machine_id'])
     
     count = 0
+    print(f"==================================================")
+    print(f"  CONTROLLED SIMULATION: {mode} MODE")
+    print(f"==================================================")
     print(f"Starting telemetry stream to {API_URL}...")
+    
     for idx, row in df.iterrows():
         if count >= max_requests:
             break
@@ -32,6 +37,21 @@ def stream_data(csv_path="../data/test_data.csv", delay_seconds=0.1, max_request
             "sensor_5": float(row['sensor_5'])
         }
         
+        # Inject variations based on mode
+        if mode == "DRIFT":
+            # Systematic drift: shifting distribution for sensor_2 and sensor_3
+            payload["sensor_2"] += 5.0 + np.random.normal(0, 1.0)
+            payload["sensor_3"] *= 1.2
+        elif mode == "ANOMALY":
+            # Random large spikes
+            if np.random.random() < 0.1:
+                payload["sensor_1"] += 50.0
+                payload["sensor_4"] -= 30.0
+        elif mode == "FAILURE_APPROACH":
+            # Gradual degradation representing impending failure
+            degradation = (count / max_requests) * 10
+            payload["sensor_5"] += degradation
+            
         try:
             response = requests.post(API_URL, json=payload)
             if response.status_code == 200:
@@ -46,17 +66,22 @@ def stream_data(csv_path="../data/test_data.csv", delay_seconds=0.1, max_request
         time.sleep(delay_seconds)
         count += 1
         
-    print(f"\nStreamed {count} records.")
+    print(f"\nStreamed {count} records in {mode} mode.")
     
     # Check drift status
     try:
-        print("\nChecking drift status...")
+        print("\nChecking drift status via API...")
         drift_res = requests.get("http://localhost:8000/mlops/drift_status")
         print(drift_res.json())
     except:
         print("Failed to check drift status.")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="AeroDrift Telemetry Streamer")
+    parser.add_argument("--mode", type=str, default="NORMAL", choices=["NORMAL", "DRIFT", "ANOMALY", "FAILURE_APPROACH"])
+    parser.add_argument("--max_requests", type=int, default=100)
+    args = parser.parse_args()
+    
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     test_path = os.path.join(base_dir, "data", "test_data.csv")
-    stream_data(csv_path=test_path, delay_seconds=0.01, max_requests=50)
+    stream_data(mode=args.mode, csv_path=test_path, delay_seconds=0.01, max_requests=args.max_requests)

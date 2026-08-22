@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -9,6 +9,7 @@ import sqlite3
 from typing import List, Dict, Any
 from evidently.legacy.report import Report
 from evidently.legacy.metric_preset import DataDriftPreset
+import sys
 
 app = FastAPI(title="AeroDrift API")
 
@@ -19,6 +20,12 @@ PRODUCTION_MODEL = None
 FEATURES_LIST = None
 
 DB_PATH = "inference.db"
+
+# Add src to path
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(base_dir, "src"))
+from retrain import run_retraining
+from event_log import log_event, get_recent_events
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -39,28 +46,30 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.on_event("startup")
-def load_artifacts():
+def reload_model_and_features():
     global PRODUCTION_MODEL, FEATURES_LIST, REFERENCE_DATA
-    init_db()
-    
-    # Resolve absolute paths
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     mlflow_db_path = os.path.join(base_dir, "mlflow.db")
     mlflow.set_tracking_uri(f"sqlite:///{mlflow_db_path}")
     
     try:
-        run_info = joblib.load(os.path.join(base_dir, "models", "latest_run_info.pkl"))
-        PRODUCTION_MODEL = mlflow.sklearn.load_model(run_info["model_uri"])
-        FEATURES_LIST = joblib.load(os.path.join(base_dir, "models", "features.pkl"))
-        print("Successfully loaded model from MLflow registry")
+        # Load from models backup instead of mlflow for speed
+        prod_path = os.path.join(base_dir, "models", "xgboost_prod.pkl")
+        if os.path.exists(prod_path):
+            PRODUCTION_MODEL = joblib.load(prod_path)
+            FEATURES_LIST = joblib.load(os.path.join(base_dir, "models", "features.pkl"))
+            print("Successfully loaded model from models directory")
     except Exception as e:
-        print(f"Warning: Could not load model from MLflow. {e}")
+        print(f"Warning: Could not load model. {e}")
+
+@app.on_event("startup")
+def load_artifacts():
+    global REFERENCE_DATA
+    init_db()
+    
+    reload_model_and_features()
     
     # Load reference data (from train set) for drift detection
     try:
-        import sys
-        sys.path.append(os.path.join(base_dir, "src"))
         from features import build_features
         train_df = pd.read_csv(os.path.join(base_dir, "data", "train_data.csv"))
         train_feat = build_features(train_df)
@@ -81,16 +90,12 @@ class TelemetryData(BaseModel):
     sensor_5: float
 
 def compute_streaming_features(machine_id, new_data_dict):
-    """
-    Stateful feature computation for a single machine.
-    """
     if machine_id not in MACHINE_STATE:
         MACHINE_STATE[machine_id] = []
         
     state = MACHINE_STATE[machine_id]
     state.append(new_data_dict)
     
-    # Keep only last 5 to compute rolling features
     if len(state) > 5:
         state.pop(0)
         
@@ -100,17 +105,14 @@ def compute_streaming_features(machine_id, new_data_dict):
     rolling_window = 5
     current = df.iloc[-1:].copy()
     
-    # Temporal Volatility (Rolling std)
     for c in sensor_cols:
         current[f"{c}_rolling_std_{rolling_window}"] = df[c].std() if len(df) > 1 else 0.0
         
-    # Lag indicators (EWMA)
     for c in sensor_cols:
         current[f"{c}_ewma_{rolling_window}"] = df[c].ewm(span=rolling_window, min_periods=1).mean().iloc[-1]
         
-    # Contextual normalization
     for c in sensor_cols:
-        initial = df[c].iloc[0] # Approximated by the window start
+        initial = df[c].iloc[0]
         current[f"{c}_norm_initial"] = current[c] / initial if initial != 0 else 1.0
         
     return current
@@ -123,17 +125,12 @@ def predict(data: TelemetryData):
     data_dict = data.dict()
     machine_id = data_dict['machine_id']
     
-    # Compute features
     feat_df = compute_streaming_features(machine_id, data_dict)
-    
-    # Ensure columns match FEATURES_LIST exactly
     X = feat_df[FEATURES_LIST].fillna(0)
     
-    # Predict
     prob = float(PRODUCTION_MODEL.predict_proba(X)[0, 1])
     pred = int(PRODUCTION_MODEL.predict(X)[0])
     
-    # Save inference to DB
     import json
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -144,6 +141,8 @@ def predict(data: TelemetryData):
     conn.commit()
     conn.close()
     
+    # Randomly log an event sometimes? No, event logs are for MLOps actions.
+    
     return {
         "machine_id": machine_id,
         "cycle": data_dict['cycle'],
@@ -153,21 +152,18 @@ def predict(data: TelemetryData):
 
 @app.post("/ingest_telemetry")
 def ingest_telemetry(data: TelemetryData):
-    # In a full deployment, this would be decoupled from /predict
-    # For now, it simply acknowledges the payload.
+    log_event("DATA_INGESTED", "INFO", {"machine_id": data.machine_id, "cycle": data.cycle})
     return {"status": "Telemetry ingested successfully", "machine_id": data.machine_id, "cycle": data.cycle}
 
 @app.post("/ingest_labels")
 def ingest_labels(machine_id: int, cycle: int, actual_failure: bool):
-    # Used for delayed actuals reporting to compute true model performance in production
     return {"status": "Label ingested", "machine_id": machine_id, "actual_failure": actual_failure}
 
 @app.get("/mlops/drift_status")
-def check_drift():
+def check_drift(background_tasks: BackgroundTasks):
     if REFERENCE_DATA is None:
         return {"error": "Reference data not available"}
         
-    # Get last inferences
     conn = sqlite3.connect(DB_PATH)
     df_live = pd.read_sql_query("SELECT feature_json FROM inference_data ORDER BY timestamp DESC LIMIT 1000", conn)
     conn.close()
@@ -177,23 +173,56 @@ def check_drift():
         
     import json
     live_features = pd.DataFrame([json.loads(x) for x in df_live['feature_json']])
-    
-    # Reorder to match REFERENCE_DATA
     live_features = live_features[FEATURES_LIST]
     
-    # Run Evidently Drift Report
     report = Report(metrics=[DataDriftPreset()])
     report.run(reference_data=REFERENCE_DATA.sample(min(1000, len(REFERENCE_DATA)), random_state=42), 
                current_data=live_features)
     
     result = report.as_dict()
     drift_detected = result['metrics'][0]['result']['dataset_drift']
+    share_of_drifted_columns = result['metrics'][0]['result']['share_of_drifted_columns']
+    
+    if drift_detected:
+        log_event("DRIFT_DETECTED", "WARNING", {"share_drifted": share_of_drifted_columns})
+        # Trigger retraining asynchronously
+        background_tasks.add_task(trigger_retraining)
     
     return {
         "drift_detected": drift_detected,
         "num_inferences_analyzed": len(live_features),
-        "share_of_drifted_columns": result['metrics'][0]['result']['share_of_drifted_columns']
+        "share_of_drifted_columns": share_of_drifted_columns
     }
+
+def trigger_retraining():
+    success = run_retraining()
+    if success:
+        log_event("RETRAINING_COMPLETED", "INFO", {"result": "Candidate promoted. Reloading API model."})
+        reload_model_and_features()
+    else:
+        log_event("RETRAINING_COMPLETED", "INFO", {"result": "Candidate rejected. Keeping existing model."})
+
+@app.post("/mlops/retrain")
+def manual_retrain(background_tasks: BackgroundTasks):
+    background_tasks.add_task(trigger_retraining)
+    return {"status": "Retraining task queued."}
+
+@app.post("/mlops/rollback")
+def rollback_model():
+    backup_path = os.path.join(base_dir, "models", "xgboost_prod_backup.pkl")
+    prod_path = os.path.join(base_dir, "models", "xgboost_prod.pkl")
+    if os.path.exists(backup_path):
+        import shutil
+        shutil.copy(backup_path, prod_path)
+        reload_model_and_features()
+        log_event("MODEL_ROLLBACK", "WARNING", {"action": "Reverted to backup production model."})
+        return {"status": "Rollback successful."}
+    else:
+        return {"error": "No backup model available."}
+
+@app.get("/mlops/events")
+def get_events(limit: int = 50):
+    return get_recent_events(limit)
 
 if __name__ == "__main__":
     import uvicorn
