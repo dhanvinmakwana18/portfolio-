@@ -15,5 +15,8 @@ mlflow.db
 inference.db
 
 # NASA Dataset
-*FD001.txt
+*FD00*.txt
+*FD00*
 CMAPSSData.zip
+CMAPSSData/
+cmapss_data/
