@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -6,12 +7,21 @@ import joblib
 import os
 import mlflow
 import sqlite3
+import subprocess
 from typing import List, Dict, Any
 from evidently.legacy.report import Report
 from evidently.legacy.metric_preset import DataDriftPreset
 import sys
 
 app = FastAPI(title="AeroDrift API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Global state for streaming feature engineering
 MACHINE_STATE = {}
@@ -223,6 +233,167 @@ def rollback_model():
 @app.get("/mlops/events")
 def get_events(limit: int = 50):
     return get_recent_events(limit)
+
+@app.get("/machines")
+def get_machines():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    # Get latest prediction for each machine
+    c.execute('''
+        SELECT machine_id, cycle, prediction, probability, timestamp
+        FROM predictions
+        WHERE (machine_id, cycle) IN (
+            SELECT machine_id, MAX(cycle) FROM predictions GROUP BY machine_id
+        )
+    ''')
+    rows = c.fetchall()
+    conn.close()
+    
+    machines = []
+    for r in rows:
+        machines.append({
+            "machine_id": r["machine_id"],
+            "cycle": r["cycle"],
+            "will_fail": bool(r["prediction"]),
+            "risk_probability": r["probability"],
+            "timestamp": r["timestamp"],
+            "status": "Critical" if r["probability"] > 0.8 else ("Warning" if r["probability"] > 0.4 else "Healthy")
+        })
+    return machines
+
+@app.get("/machines/{machine_id}")
+def get_machine_detail(machine_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('''
+        SELECT p.cycle, p.prediction, p.probability, p.timestamp, i.feature_json
+        FROM predictions p
+        JOIN inference_data i ON p.machine_id = i.machine_id AND p.cycle = i.cycle
+        WHERE p.machine_id = ?
+        ORDER BY p.cycle ASC
+    ''', (machine_id,))
+    rows = c.fetchall()
+    conn.close()
+    
+    history = []
+    import json
+    for r in rows:
+        history.append({
+            "cycle": r["cycle"],
+            "prediction": bool(r["prediction"]),
+            "risk_probability": r["probability"],
+            "timestamp": r["timestamp"],
+            "features": json.loads(r["feature_json"])
+        })
+    return history
+
+@app.get("/machines/{machine_id}/shap")
+def get_machine_shap(machine_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('''
+        SELECT feature_json FROM inference_data
+        WHERE machine_id = ?
+        ORDER BY cycle DESC LIMIT 1
+    ''', (machine_id,))
+    row = c.fetchone()
+    conn.close()
+    
+    if not row or not PRODUCTION_MODEL:
+        return {"error": "Data or model unavailable"}
+        
+    import json
+    import shap
+    features = json.loads(row["feature_json"])
+    
+    try:
+        # SHAP calculation for XGBoost (calibrated)
+        base_estimator = PRODUCTION_MODEL.calibrated_classifiers_[0].estimator
+        explainer = shap.TreeExplainer(base_estimator)
+        X = pd.DataFrame([features])[FEATURES_LIST].fillna(0)
+        shap_values = explainer.shap_values(X)[0]
+        
+        # Sort by absolute impact
+        shap_dict = [{"feature": f, "value": features[f], "impact": float(s)} for f, s in zip(FEATURES_LIST, shap_values)]
+        shap_dict.sort(key=lambda x: abs(x["impact"]), reverse=True)
+        return shap_dict[:10] # Top 10
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/predictions")
+def get_predictions(limit: int = 20):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM predictions ORDER BY timestamp DESC LIMIT ?', (limit,))
+    rows = c.fetchall()
+    conn.close()
+    
+    return [dict(r) for r in rows]
+
+STREAMER_PROC = None
+
+@app.post("/streamer/start")
+def start_streamer(mode: str = "NORMAL"):
+    global STREAMER_PROC
+    if STREAMER_PROC and STREAMER_PROC.poll() is None:
+        return {"status": "Streamer is already running"}
+    
+    STREAMER_PROC = subprocess.Popen(
+        [sys.executable, "-u", "src/streamer.py", "--mode", mode, "--max_requests", "200"],
+        cwd=base_dir
+    )
+    log_event("SYSTEM_INFO", "INFO", {"message": f"Streamer started in {mode} mode"})
+    return {"status": "Streamer started", "mode": mode}
+
+@app.post("/streamer/stop")
+def stop_streamer():
+    global STREAMER_PROC
+    if STREAMER_PROC and STREAMER_PROC.poll() is None:
+        STREAMER_PROC.kill()
+        STREAMER_PROC = None
+        log_event("SYSTEM_INFO", "INFO", {"message": "Streamer stopped"})
+        return {"status": "Streamer stopped"}
+    return {"status": "Streamer not running"}
+
+@app.get("/mlops/models")
+def get_mlops_models():
+    client = mlflow.MlflowClient()
+    try:
+        # Just getting the registered model versions
+        versions = client.search_model_versions("name='AeroDrift_XGBoost'")
+        result = []
+        for v in versions:
+            run = client.get_run(v.run_id)
+            metrics = run.data.metrics
+            result.append({
+                "version": v.version,
+                "stage": v.aliases[0] if v.aliases else next((t.value for t in v.tags.values() if t.key == 'stage'), 'None'), # Wait, tags is a dict. Let's handle safely.
+                "run_id": v.run_id,
+                "metrics": metrics,
+                "timestamp": v.creation_timestamp
+            })
+        
+        # Safe extraction
+        final_result = []
+        for v in versions:
+            run = client.get_run(v.run_id)
+            metrics = run.data.metrics
+            stage = v.tags.get('stage', 'None')
+            final_result.append({
+                "version": v.version,
+                "stage": stage,
+                "run_id": v.run_id,
+                "metrics": metrics,
+                "timestamp": v.creation_timestamp
+            })
+            
+        return final_result
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
