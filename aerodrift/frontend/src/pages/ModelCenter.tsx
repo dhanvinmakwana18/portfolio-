@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchModels, triggerRetrain, triggerRollback } from '../lib/api';
 import { GitBranch, History, RotateCcw, Play, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '../components/Layout';
+import { motion } from 'framer-motion';
 
 export const ModelCenter = () => {
   const [models, setModels] = useState<any[]>([]);
@@ -40,57 +41,58 @@ export const ModelCenter = () => {
   const history = models.filter(m => m.stage !== 'Production').sort((a, b) => b.version - a.version);
 
   return (
-    <div className="space-y-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <header className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-light text-white tracking-tight">Model Center</h1>
-          <p className="text-slate-400 mt-2">MLflow registry and lifecycle management</p>
+          <h1 className="text-4xl font-extralight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight">Model Center</h1>
+          <p className="text-slate-400 mt-2 font-light">MLflow registry and lifecycle management</p>
         </div>
         <div className="flex space-x-3">
-          <button onClick={handleRollback} className="px-4 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20 rounded-lg flex items-center text-sm font-medium transition-colors">
+          <button onClick={handleRollback} className="px-5 py-2.5 bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20 rounded-lg flex items-center tracking-widest text-xs font-bold transition-colors shadow-[0_0_15px_rgba(245,158,11,0.1)]">
             <RotateCcw className="w-4 h-4 mr-2" /> ROLLBACK
           </button>
-          <button onClick={handleRetrain} className="px-4 py-2 bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 rounded-lg flex items-center text-sm font-medium transition-colors">
+          <button onClick={handleRetrain} className="px-5 py-2.5 bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 rounded-lg flex items-center tracking-widest text-xs font-bold transition-colors shadow-[0_0_15px_rgba(56,189,248,0.1)]">
             <Play className="w-4 h-4 mr-2" /> MANUAL RETRAIN
           </button>
         </div>
       </header>
 
       {/* Production Model */}
-      <div className="glass-panel p-6 rounded-xl border-t-4 border-t-emerald-500">
-        <h2 className="text-sm uppercase tracking-widest font-semibold text-slate-400 mb-6 flex items-center">
-          <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" /> Current Production Model
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-xl border-t-4 border-t-emerald-500 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+        <h2 className="text-sm uppercase tracking-widest font-semibold text-slate-400 mb-8 flex items-center relative z-10">
+          <CheckCircle className="w-5 h-5 mr-3 text-emerald-400 shadow-emerald-500/50" /> Current Production Model
         </h2>
         {prodModel ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
             <div>
-              <p className="text-slate-500 text-xs uppercase mb-1">Version</p>
-              <p className="text-2xl font-light text-slate-200">v{prodModel.version}</p>
+              <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-semibold">Version</p>
+              <p className="text-4xl font-light text-slate-200">v{prodModel.version}</p>
             </div>
             <div>
-              <p className="text-slate-500 text-xs uppercase mb-1">F1 Score</p>
-              <p className="text-2xl font-light text-emerald-400">{prodModel.metrics?.cand_f1?.toFixed(4) || prodModel.metrics?.f1_score?.toFixed(4) || 'N/A'}</p>
+              <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-semibold">F1 Score</p>
+              <p className="text-4xl font-light text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{prodModel.metrics?.cand_f1?.toFixed(4) || prodModel.metrics?.f1_score?.toFixed(4) || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-slate-500 text-xs uppercase mb-1">False Positive Rate</p>
-              <p className="text-2xl font-light text-emerald-400">{prodModel.metrics?.cand_fpr?.toFixed(4) || 'N/A'}</p>
+              <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-semibold">False Positive Rate</p>
+              <p className="text-4xl font-light text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{prodModel.metrics?.cand_fpr?.toFixed(4) || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-slate-500 text-xs uppercase mb-1">Run ID</p>
-              <p className="text-sm font-mono text-slate-400 truncate">{prodModel.run_id}</p>
+              <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-semibold">Run ID</p>
+              <p className="text-sm font-mono text-slate-400 truncate mt-3">{prodModel.run_id}</p>
             </div>
           </div>
         ) : (
-          <div className="text-slate-500 italic">No production model found in registry.</div>
+          <div className="text-slate-500 italic relative z-10">No production model found in registry.</div>
         )}
-      </div>
+      </motion.div>
 
       {/* Model History */}
-      <div>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <h2 className="text-lg font-medium text-slate-200 mb-4 flex items-center"><History className="w-5 h-5 mr-2 text-slate-400" /> Model History</h2>
-        <div className="glass-panel rounded-xl overflow-hidden">
+        <div className="glass-panel rounded-xl overflow-hidden shadow-2xl">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-900/50 text-slate-400 text-xs uppercase border-b border-slate-800/60">
+            <thead className="bg-slate-900/80 text-slate-400 text-xs uppercase tracking-widest border-b border-slate-700/50">
               <tr>
                 <th className="px-6 py-4 font-semibold">Version</th>
                 <th className="px-6 py-4 font-semibold">Stage</th>
@@ -101,18 +103,18 @@ export const ModelCenter = () => {
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-300">
               {history.map((m) => (
-                <tr key={m.version} className="hover:bg-slate-800/30 transition-colors">
+                <tr key={m.version} className="hover:bg-slate-800/40 transition-colors">
                   <td className="px-6 py-4 font-mono font-medium">v{m.version}</td>
                   <td className="px-6 py-4">
                     <span className={cn(
-                      "px-2 py-1 rounded text-xs font-bold uppercase tracking-wider",
-                      m.stage === 'Rejected' ? 'bg-rose-500/10 text-rose-400' : 'bg-slate-800 text-slate-400'
+                      "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                      m.stage === 'Rejected' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' : 'bg-slate-800 border border-slate-700 text-slate-400'
                     )}>
                       {m.stage}
                     </span>
                   </td>
-                  <td className="px-6 py-4">{m.metrics?.cand_f1?.toFixed(4) || m.metrics?.f1_score?.toFixed(4) || '-'}</td>
-                  <td className="px-6 py-4">{m.metrics?.cand_fpr?.toFixed(4) || '-'}</td>
+                  <td className="px-6 py-4 font-mono text-sky-200">{m.metrics?.cand_f1?.toFixed(4) || m.metrics?.f1_score?.toFixed(4) || '-'}</td>
+                  <td className="px-6 py-4 font-mono text-sky-200">{m.metrics?.cand_fpr?.toFixed(4) || '-'}</td>
                   <td className="px-6 py-4 font-mono text-xs text-slate-500">{m.run_id}</td>
                 </tr>
               ))}
@@ -122,7 +124,7 @@ export const ModelCenter = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
