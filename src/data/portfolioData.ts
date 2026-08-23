@@ -18,6 +18,46 @@ export const PERSONAL_INFO = {
 
 export const PROJECTS: Project[] = [
   {
+    id: "aerodrift",
+    title: "AeroDrift: Predictive Maintenance & MLOps System",
+    subtitle: "End-to-end ML/MLOps engineering system for aerospace telemetry",
+    category: "MLOps & Predictive AI",
+    badge: "MLOps & ML",
+    description: "An autonomous machine learning lifecycle platform that predicts industrial machine failure, explains risks via SHAP, and autonomously manages data drift and model retraining.",
+    longDescription: `AeroDrift is a portfolio-grade ML engineering system demonstrating the entire lifecycle of an industrial machine learning platform. It ingests aerospace telemetry, predicts imminent failures using XGBoost with calibrated risk probabilities, and provides deterministic SHAP-based explainability. Beyond inference, it features an autonomous MLOps lifecycle: monitoring for data drift via Evidently AI, triggering shadow retraining pipelines, and utilizing a deterministic promotion/rejection gate to safely update production models.
+
+1. **Problem**: Industrial equipment failures cause massive downtime. Predictive maintenance requires not just a static model, but a self-monitoring system that adapts to data drift without human intervention.
+2. **Solution**: Developed an end-to-end ML/MLOps system featuring streaming inference, continuous monitoring, and automated model promotion gates.
+3. **Architecture**: FastAPI backend, React industrial Control Room, SQLite inference logging, MLflow model registry, and a Python telemetry simulation engine.
+4. **ML Approach**: XGBoost models with temporal feature engineering (EWMA, rolling statistics, operational-condition normalization), baselined against Logistic Regression.
+5. **MLOps Lifecycle**: Automated drift detection (Evidently AI) triggers candidate retraining. The candidate is evaluated against the live model and mathematically promoted/rejected.
+6. **Real NASA Dataset Validation**: Validated on the NASA C-MAPSS dataset (FD001, FD002, FD003, FD004) preventing machine-level and temporal leakage.
+7. **Robustness Experiments**: Conducted severe ablation testing: cross-dataset generalization, operating-condition robustness, sensor ablation, measurement noise injection, and false-alarm analysis.
+8. **Key Results**: Strongest in-domain performance on FD001 (F1: 0.7889, Precision: 0.8638, Recall: 0.7259, ROC-AUC: 0.9969, Brier Score: 0.0074, FPR: 0.0030).
+9. **Important Limitations**: Models trained on single-condition datasets failed severely when transferred to multi-condition environments, proving the necessity of operational normalization.
+10. **GitHub**: Fully open-source local-first architecture.`,
+    problem: "Industrial equipment failures cause massive downtime, and static models quickly degrade from data drift without continuous retraining.",
+    solution: "Developed an autonomous MLOps platform predicting failures with calibrated risk scores, complete with automated drift detection, shadow retraining, and mathematical model promotion gates.",
+    results: "Validated on NASA C-MAPSS dataset, achieving 0.7889 F1, 0.9969 ROC-AUC, and 0.0030 FPR on FD001 with strong resistance to sensor noise.",
+    tags: ["XGBoost", "FastAPI", "MLOps", "MLflow", "Evidently AI", "React", "SHAP", "SQLite", "Python"],
+    metrics: [
+      { label: "FD001 F1 Score", value: "0.7889" },
+      { label: "ROC-AUC", value: "0.9969" },
+      { label: "False Positive Rate", value: "0.0030" },
+      { label: "Experiment Suite", value: "Passed 12/12" },
+    ],
+    keyFeatures: [
+      "XGBoost predictive maintenance engine with calibrated risk probabilities and temporal EWMA feature engineering.",
+      "Deterministic SHAP explainability tied synchronously to high-risk inference events.",
+      "Autonomous MLOps lifecycle with Evidently AI drift detection, shadow retraining, and mathematical candidate promotion/rejection gates.",
+      "React-based industrial Control Room featuring live telemetry streaming, machine health profiles, and event audit logging."
+    ],
+    architectureOverview: "NASA C-MAPSS Telemetry Stream -> FastAPI Inference Endpoint -> XGBoost / SHAP -> SQLite Event Log -> Evidently AI Background Monitor -> MLflow Registry -> Retraining Worker -> Promotion Gate -> React Control Room.",
+    githubUrl: "https://github.com/DhanvinMakwana/AeroDrift",
+    liveUrl: "",
+    image: "https://images.unsplash.com/photo-1544724569-5f546fd6f2b6?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
     id: "nexus-llm",
     title: "NexusLLM: Autonomous Agentic RAG & Multi-Modal Engine",
     subtitle: "Enterprise-grade Retrieval-Augmented Generation & Tool-Calling Agent System",
