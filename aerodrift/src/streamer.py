@@ -51,12 +51,25 @@ def stream_data(mode: str, csv_path: str, delay_seconds: float = 0.05, max_reque
             # Gradual degradation representing impending failure
             degradation = (count / max_requests) * 10
             payload["sensor_5"] += degradation
+        elif mode == "DATA_CORRUPTION":
+            # Inject schema breaking values
+            if np.random.random() < 0.2:
+                payload["sensor_1"] = -100.0  # Invalid negative Kelvin
+            if np.random.random() < 0.1:
+                payload["machine_id"] = -1    # Invalid ID
+        elif mode == "SUDDEN_FAILURE":
+            # Catastrophic rapid failure spike
+            if count > max_requests // 2:
+                payload["sensor_3"] += 500.0
+                payload["sensor_5"] += 200.0
             
         try:
             response = requests.post(API_URL, json=payload)
             if response.status_code == 200:
                 res = response.json()
                 print(f"[Cycle {res['cycle']} | Machine {res['machine_id']}] -> Prob: {res['risk_probability']:.4f} | Will Fail: {res['will_fail']}")
+            elif response.status_code == 422:
+                print(f"Data Quality Error {response.status_code}: {response.json().get('status', 'Validation Failed')}")
             else:
                 print(f"Error {response.status_code}: {response.text}")
         except requests.exceptions.ConnectionError:
@@ -78,7 +91,7 @@ def stream_data(mode: str, csv_path: str, delay_seconds: float = 0.05, max_reque
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AeroDrift Telemetry Streamer")
-    parser.add_argument("--mode", type=str, default="NORMAL", choices=["NORMAL", "DRIFT", "ANOMALY", "FAILURE_APPROACH"])
+    parser.add_argument("--mode", type=str, default="NORMAL", choices=["NORMAL", "DRIFT", "ANOMALY", "FAILURE_APPROACH", "DATA_CORRUPTION", "SUDDEN_FAILURE"])
     parser.add_argument("--max_requests", type=int, default=100)
     args = parser.parse_args()
     

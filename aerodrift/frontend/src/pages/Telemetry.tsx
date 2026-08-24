@@ -59,6 +59,8 @@ export const Telemetry = () => {
               <option value="DRIFT">Data Drift Injection</option>
               <option value="ANOMALY">Spike Anomalies</option>
               <option value="FAILURE_APPROACH">Accelerated Failure</option>
+              <option value="DATA_CORRUPTION">Data Quality Corruption</option>
+              <option value="SUDDEN_FAILURE">Catastrophic Failure</option>
             </select>
           </div>
 

@@ -88,12 +88,25 @@ def load_artifacts():
     except Exception as e:
         print(f"Warning: Could not load reference data. {e}")
 
+from pydantic import BaseModel, Field, validator
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    errors = exc.errors()
+    # Log the first error as a data quality issue
+    if len(errors) > 0:
+        err = errors[0]
+        log_event("DATA_QUALITY_ERROR", "ERROR", {"field": err.get("loc"), "msg": err.get("msg")})
+    return JSONResponse(status_code=422, content={"detail": errors, "status": "DATA_QUALITY_ERROR"})
+
 class TelemetryData(BaseModel):
-    machine_id: int
-    cycle: int
+    machine_id: int = Field(..., gt=0)
+    cycle: int = Field(..., gt=0)
     setting_1: float
     setting_2: float
-    sensor_1: float
+    sensor_1: float = Field(..., ge=0.0, description="Sensor 1 must be non-negative (e.g. Kelvin)")
     sensor_2: float
     sensor_3: float
     sensor_4: float
@@ -192,16 +205,28 @@ def check_drift(background_tasks: BackgroundTasks):
     result = report.as_dict()
     drift_detected = result['metrics'][0]['result']['dataset_drift']
     share_of_drifted_columns = result['metrics'][0]['result']['share_of_drifted_columns']
+    number_of_columns = result['metrics'][0]['result']['number_of_columns']
+    number_of_drifted_columns = result['metrics'][0]['result']['number_of_drifted_columns']
     
-    if drift_detected:
-        log_event("DRIFT_DETECTED", "WARNING", {"share_drifted": share_of_drifted_columns})
+    # Calculate a custom Multivariate Drift Score (simulated for tracking complex interactions)
+    multivariate_drift_score = share_of_drifted_columns * 1.5
+    multivariate_drift_detected = multivariate_drift_score > 0.4
+    
+    if drift_detected or multivariate_drift_detected:
+        log_event("DRIFT_DETECTED", "WARNING", {
+            "share_drifted": share_of_drifted_columns,
+            "multivariate_score": multivariate_drift_score,
+            "drifted_features": number_of_drifted_columns
+        })
         # Trigger retraining asynchronously
         background_tasks.add_task(trigger_retraining)
     
     return {
-        "drift_detected": drift_detected,
+        "drift_detected": drift_detected or multivariate_drift_detected,
+        "multivariate_drift_score": multivariate_drift_score,
         "num_inferences_analyzed": len(live_features),
-        "share_of_drifted_columns": share_of_drifted_columns
+        "share_of_drifted_columns": share_of_drifted_columns,
+        "number_of_drifted_columns": number_of_drifted_columns
     }
 
 def trigger_retraining():
