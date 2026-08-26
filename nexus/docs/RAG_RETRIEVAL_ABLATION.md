@@ -88,3 +88,78 @@ The BM25 distractors that pushed the true answers down are distinctly different 
 ### Recommendation
 **Do not adopt Depth 20.** I have reverted the candidate depth back to the baseline of 5.
 For the next experiment, we should introduce an alpha weighting parameter to RRF (Experiment 2: Weighted RRF) to mathematically penalize BM25 noise *before* the chunks are sorted, ensuring the true semantic matches never drop below rank 5.
+
+## Experiment 2 — Weighted Reciprocal Rank Fusion
+
+### Hypothesis
+The current RRF implementation applies equal weighting to Dense and Sparse retrieval rankings. Because BM25 keyword matching can introduce noisy distractors that push semantic matches down, assigning a greater weight to Dense retrieval (e.g., 0.7) should theoretically suppress BM25-induced noise and improve Hybrid retrieval quality.
+
+### Method
+Modified the eciprocal_rank_fusion algorithm to accept dense_weight and sparse_weight multipliers.
+The mathematical implementation modifies standard RRF as follows:
+WRRF(d) = α * (1 / (k + rank_dense(d))) + β * (1 / (k + rank_sparse(d)))
+Where k=60.
+
+### Configurations
+* **Baseline:** α = 0.5, β = 0.5 (Mathematically equivalent to current default 1.0 / 1.0)
+* **Experiment A:** α = 0.7, β = 0.3
+* **Experiment B:** α = 0.8, β = 0.2
+
+### Aggregate Metrics
+| Configuration | Recall@3 | Recall@5 | MRR | nDCG |
+| --- | --- | --- | --- | --- |
+| Baseline (0.5/0.5) | 0.5000 | 0.5625 | 0.4500 | 0.4780 |
+| Weighted (0.7/0.3) | 0.5000 | 0.5625 | 0.4396 | 0.4699 |
+| Weighted (0.8/0.2) | 0.5000 | 0.5625 | 0.4427 | 0.4726 |
+
+*Note: The isolated retrieval metrics evaluate purely context assembly hit-rates.*
+
+### Query-Level Findings & Noise Analysis
+The hypothesis completely inverted in practice. Increasing Dense weight and penalizing Sparse actually **degraded** ranking quality (MRR dropped from 0.4500 to 0.4396).
+For example, on the query *"What are the main components of the LangChain ecosystem?"*:
+* In the Baseline configuration, the correct chunk containing "LangSmith" achieved Rank 2.
+* In the 0.7/0.3 configuration, this exact chunk was pushed down to Rank 3.
+A raw examination of the independent retrieval pipelines revealed that for this specific query, Dense retrieval ranked the target chunk at Rank 5, while Sparse (BM25) provided complementary ranking signal that elevated it. Penalizing the sparse signal reduced the chunk's RRF score relative to purely semantic (but contextually wrong) distractors. 
+
+### Latency
+No measurable difference. Weighted arithmetic adds O(N) floating-point multiplications which execute in sub-millisecond time.
+
+### Result
+**REJECTED.**
+Penalizing BM25 sparse retrieval does not selectively remove noise; it also suppresses critical exact-keyword signals that were successfully boosting correct chunks above Dense-only semantic distractors.
+
+### Recommendation
+Retain the modular weighting implementation in usion.py to allow future hyperparameter sweeps or query-adaptive routing, but **keep the production default weights at 1.0 / 1.0 (equal weighting)**. The current Hybrid/RRF balance is empirically superior to a Dense-heavy split for this dataset.
+
+## Experiment 3: Semantic / Structural Chunking Optimization
+**Status:** COMPLETED
+**Objective:** Determine whether structural/semantic chunking improves retrieval quality over the baseline arbitrary fixed-length string chunking (size=1000, overlap=200).
+
+### Hypothesis
+The existing chunking strategy splits concepts across arbitrary character boundaries, degrading the semantic coherence of Dense embeddings and splitting exact-match context for BM25.
+
+### Methodology
+- Created an isolated semantic_chunk_text function in a temporary environment.
+- Prioritized structural Markdown boundaries (\n# , \n## , \n\n, etc.) before falling back to character limits.
+- Evaluated on the eval_dataset.json queries against the isolated Qdrant memory store and BM25 store.
+- **Phase 3A:** Semantic chunking with overlap=0.
+- **Phase 3B:** Semantic chunking with overlap=200.
+
+### Results
+
+| Metric | Base Hybrid | Base Dense | Base Sparse | Sem Hybrid (No Overlap) | Sem Dense (No Overlap) | Sem Sparse (No Overlap) | Sem Hybrid (Overlap 200) | Sem Dense (Overlap 200) | Sem Sparse (Overlap 200) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Recall@3** | 0.3125 | 0.3125 | 0.3125 | 0.3125 | 0.3125 | 0.2500 | **0.3125** | **0.3750** | 0.3125 |
+| **Recall@5** | 0.3750 | 0.3750 | 0.3125 | 0.3750 | 0.3750 | 0.3125 | **0.3750** | **0.3750** | 0.3125 |
+| **MRR**      | 0.2656 | 0.2552 | 0.2396 | 0.2448 | 0.2656 | 0.1479 | **0.2865** | **0.3333** | 0.2292 |
+| **nDCG**     | 0.2933 | 0.2851 | 0.2582 | 0.2769 | 0.2933 | 0.1886 | **0.3082** | **0.3438** | 0.2500 |
+
+### Findings
+1. **Dense Retrieval Improved Significantly**: By preserving semantic boundaries, Dense MRR surged from  .2552 to  .3333 (+30% relative improvement) when using overlap=200. The embedding vectors now represent coherent concepts rather than fragments.
+2. **Overlap is Mandatory for BM25**: When overlap=0 was tested, BM25 MRR collapsed from  .2396 to  .1479. Sparse retrieval relies heavily on term co-occurrence; hard boundaries without overlap split adjacent keywords, destroying exact-match signals.
+3. **Hybrid Performance**: Overall Hybrid MRR improved from  .2656 to  .2865 with Semantic Chunking (Overlap 200). 
+
+### Conclusion
+**HYPOTHESIS CONFIRMED.** Semantic chunking improves dense retrieval quality. However, overlap must be maintained to preserve BM25 performance. 
+We should adopt a semantic chunker with a 200-character overlap fallback.
+
