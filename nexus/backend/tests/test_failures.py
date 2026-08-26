@@ -14,7 +14,7 @@ def test_empty_retrieval_insufficient_evidence():
     data = response.json()
     assert "I cannot find sufficient evidence" in data["answer"] or not data["grounded"]
 
-@patch("vectorstore.qdrant_client.vector_store.search_hybrid")
+@patch("vectorstore.qdrant_client.vector_store.search")
 def test_vector_store_failure(mock_search):
     mock_search.side_effect = Exception("VECTOR_STORE_FAILURE")
     response = client.post("/api/v1/chat", json={
