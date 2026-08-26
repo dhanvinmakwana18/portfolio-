@@ -1,10 +1,16 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: 'http://127.0.0.1:8001/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 120000, // 2 minutes for LLM calls
+});
+
+const healthApi = axios.create({
+  baseURL: 'http://127.0.0.1:8001',
+  timeout: 5000,
 });
 
 export const chatWithNexus = async (query: string, mode: string = 'auto') => {
@@ -19,6 +25,7 @@ export const uploadDocument = async (file: File) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 300000, // 5 minutes for large files
   });
   return response.data;
 };
@@ -31,4 +38,13 @@ export const getDocuments = async () => {
 export const getStatus = async () => {
   const response = await api.get('/status');
   return response.data;
+};
+
+export const getHealth = async () => {
+  try {
+    const response = await healthApi.get('/health');
+    return response.data;
+  } catch {
+    return { status: 'OFFLINE', service: 'NexusLLM', components: {} };
+  }
 };

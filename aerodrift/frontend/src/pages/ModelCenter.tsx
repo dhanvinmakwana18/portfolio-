@@ -37,8 +37,9 @@ export const ModelCenter = () => {
     }
   };
 
-  const prodModel = models.find(m => m.stage === 'Production');
-  const history = models.filter(m => m.stage !== 'Production').sort((a, b) => b.version - a.version);
+  const safeModels = Array.isArray(models) ? models : [];
+  const prodModel = safeModels.find(m => m.stage === 'Production');
+  const history = safeModels.filter(m => m.stage !== 'Production').sort((a, b) => b.version - a.version);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">

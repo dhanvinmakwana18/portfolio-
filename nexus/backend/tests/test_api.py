@@ -7,7 +7,7 @@ client = TestClient(app)
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "ok"
+    assert response.json()["status"] in ["ONLINE", "DEGRADED", "OFFLINE"]
 
 def test_status_endpoint():
     response = client.get("/api/v1/status")
@@ -21,4 +21,4 @@ def test_chat_direct_mode():
     data = response.json()
     assert "answer" in data
     assert len(data["trace"]) > 0
-    assert any(step["step"] == "Execution" for step in data["trace"])
+    assert any("ROUTER" in step["step"] for step in data["trace"])

@@ -5,10 +5,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "NexusLLM"
     API_V1_STR: str = "/api/v1"
     
-    # Paths
+    TESTING: bool = os.getenv("TESTING", "False").lower() in ("true", "1", "yes", "t")
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DATA_DIR: str = os.path.join(os.path.dirname(BASE_DIR), "data")
-    QDRANT_STORAGE_PATH: str = os.path.join(DATA_DIR, "qdrant")
+    DATA_DIR: str = os.path.join(os.path.dirname(BASE_DIR), "test_data" if TESTING else "data")
+    QDRANT_STORAGE_PATH: str = ":memory:" if TESTING else os.path.join(DATA_DIR, "qdrant")
     SQLITE_DB_PATH: str = os.path.join(DATA_DIR, "sqlite", "nexus.db")
     DOCUMENTS_DIR: str = os.path.join(DATA_DIR, "documents")
     
@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Ensure directories exist
-os.makedirs(settings.QDRANT_STORAGE_PATH, exist_ok=True)
+if settings.QDRANT_STORAGE_PATH != ":memory:":
+    os.makedirs(settings.QDRANT_STORAGE_PATH, exist_ok=True)
 os.makedirs(os.path.dirname(settings.SQLITE_DB_PATH), exist_ok=True)
 os.makedirs(settings.DOCUMENTS_DIR, exist_ok=True)

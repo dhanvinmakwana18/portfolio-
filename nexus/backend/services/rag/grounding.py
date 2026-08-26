@@ -22,3 +22,17 @@ def validate_citations(response: str, allowed_sources: list) -> str:
         return response + warning
         
     return response
+
+def evaluate_support(claim: str, evidence: str) -> bool:
+    """
+    Evaluates whether the given claim is semantically supported by the evidence.
+    Uses the configured LLM provider to perform the entailment check.
+    """
+    from providers.llm import llm_provider
+    prompt = f"Evidence:\n{evidence}\n\nClaim:\n{claim}\n\nBased ONLY on the evidence above, is the claim fully supported? Answer strictly with YES or NO."
+    try:
+        system_prompt = "You are a strict logical validator. Evaluate entailment and output only YES or NO."
+        res = llm_provider.generate(prompt=prompt, system_prompt=system_prompt).strip().upper()
+        return "YES" in res
+    except Exception:
+        return False

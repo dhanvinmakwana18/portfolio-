@@ -1,52 +1,202 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional, Any
+import time
+import uuid
 
 api_router = APIRouter()
 
 class QueryRequest(BaseModel):
     query: str
-    mode: str = "auto" # auto, direct, rag, multimodal, agentic
+    mode: str = "auto"  # auto, direct, rag, agentic
+    retrieval_mode: str = "rerank"  # dense, sparse, hybrid, rerank
+
+class SourceInfo(BaseModel):
+    id: Any = None
+    filename: str = "Unknown"
+    page: Any = "?"
+    text: str = ""
+    score: float = 0.0
 
 class QueryResponse(BaseModel):
     answer: str
     sources: List[dict] = []
     trace: List[dict] = []
     run_id: str
+    grounded: bool = False
+    routing_mode: str = "auto"
 
-from services.agents.workflow import execute_agent
 from providers.llm import llm_provider
-import time
-import uuid
+from services.agents.router import route_query
 
 @api_router.post("/chat", response_model=QueryResponse)
 async def chat_endpoint(request: QueryRequest):
     start_time = time.time()
     run_id = str(uuid.uuid4())
+    trace = []
     
-    # Execute through workflow
-    state, source_docs = execute_agent(request.query)
+    def add_trace(step: str, action: str, latency_ms: float = None):
+        entry = {"step": step, "action": action}
+        if latency_ms is not None:
+            entry["latency_ms"] = round(latency_ms, 1)
+        trace.append(entry)
+    
+    add_trace("REQUEST", f"Received query: '{request.query}' | Mode: {request.mode}")
+    
+    # 1. ROUTING
+    route_start = time.time()
+    if request.mode == "auto":
+        try:
+            resolved_mode = route_query(request.query)
+            add_trace("ROUTER", f"Auto-resolved to: {resolved_mode}", (time.time() - route_start) * 1000)
+        except Exception as e:
+            resolved_mode = "DIRECT"
+            add_trace("ROUTER", f"Routing failed ({e}), fallback to DIRECT", (time.time() - route_start) * 1000)
+    else:
+        resolved_mode = request.mode.upper()
+        add_trace("ROUTER", f"User-selected mode: {resolved_mode}")
     
     sources = []
-    for res in source_docs:
-        sources.append({
-            "id": res.get("id"),
-            "filename": res.get("filename", "Unknown"),
-            "page": res.get("page", "?"),
-            "text": res.get("text", "")[:200] + "...",
-            "score": res.get("score", 0)
-        })
+    cited = False
+    supported = False
+    answer = ""
+    
+    # 2. EXECUTE based on resolved mode
+    if resolved_mode == "DIRECT":
+        # Direct LLM call — no retrieval
+        gen_start = time.time()
+        try:
+            system_prompt = "You are NexusLLM, an advanced AI assistant. Answer the user's question directly and concisely."
+            answer = llm_provider.generate(prompt=request.query, system_prompt=system_prompt)
+            add_trace("LLM_GENERATION", f"Direct response generated", (time.time() - gen_start) * 1000)
+            cited = False  # No retrieval = not cited
+            supported = False
+        except Exception as e:
+            answer = f"Error generating response: {e}"
+            add_trace("ERROR", f"LLM generation failed: {e}")
+    
+    elif resolved_mode == "RAG":
+        # Full RAG pipeline
+        from services.retrieval.rag import retrieve_documents
         
-    latency = round(time.time() - start_time, 2)
-    state.add_trace("Complete", f"Response generated in {latency}s")
+        ret_start = time.time()
+        try:
+            context, source_docs = retrieve_documents(request.query, limit=5, retrieval_mode=request.retrieval_mode)
+            ret_latency = (time.time() - ret_start) * 1000
+            add_trace("RETRIEVAL", f"Retrieved {len(source_docs)} chunks via {request.retrieval_mode}", ret_latency)
+            
+            sources = []
+            for res in source_docs:
+                sources.append({
+                    "id": res.get("id"),
+                    "filename": res.get("filename", "Unknown"),
+                    "page": res.get("page", "?"),
+                    "text": res.get("text", "")[:200] + "..." if len(res.get("text", "")) > 200 else res.get("text", ""),
+                    "score": res.get("score", 0)
+                })
+            
+            add_trace("CONTEXT_ASSEMBLY", f"Assembled context from {len(sources)} deduplicated chunks")
+            
+            if not context:
+                answer = "I cannot find sufficient evidence in the knowledge base to answer your question. Please upload relevant documents first."
+                add_trace("GROUNDING", "Insufficient evidence \u2014 no relevant documents found")
+                cited = False
+                supported = False
+            else:
+                gen_start = time.time()
+                system_prompt = (
+                    "You are NexusLLM. Use the provided context to answer the user query.\n"
+                    "If the context does not contain the answer, say 'I cannot find the answer in the provided documents.'\n"
+                    "Always cite your sources using [Source X] notation. NEVER fabricate a source."
+                )
+                prompt = f"Context:\n{context}\n\nQuery: {request.query}"
+                raw_answer = llm_provider.generate(prompt=prompt, system_prompt=system_prompt)
+                gen_latency = (time.time() - gen_start) * 1000
+                add_trace("LLM_GENERATION", f"Generated response", gen_latency)
+                
+                # Citation verification
+                from services.rag.grounding import validate_citations, evaluate_support
+                answer = validate_citations(raw_answer, source_docs)
+                
+                # Check if the model refused to answer
+                refusal_phrases = ["cannot find the answer", "no relevant information", "not in the provided documents"]
+                is_refusal = any(p in answer.lower() for p in refusal_phrases)
+                cited = not is_refusal and len(sources) > 0 and "[Source" in answer
+                add_trace("CITATION_CHECK", f"Cited: {cited} | Sources Provided: {len(sources)}")
+
+                # Evaluate Support
+                supported = False
+                if not is_refusal and cited:
+                    support_start = time.time()
+                    supported = evaluate_support(answer, context)
+                    support_latency = (time.time() - support_start) * 1000
+                    add_trace("SUPPORT_CHECK", f"Supported: {supported}", support_latency)
+                
+        except Exception as e:
+            answer = f"Retrieval error: {e}"
+            add_trace("ERROR", f"RAG pipeline failed: {e}")
+            supported = False
+    
+    elif resolved_mode == "AGENTIC":
+        # Full agentic workflow
+        from services.agents.workflow import execute_agent
+        
+        agent_start = time.time()
+        try:
+            state, source_docs = execute_agent(request.query)
+            agent_latency = (time.time() - agent_start) * 1000
+            answer = state.response
+            
+            # Merge agent trace
+            for t in state.trace:
+                add_trace(f"AGENT.{t['step']}", t['action'])
+            
+            sources = []
+            for res in source_docs:
+                sources.append({
+                    "id": res.get("id"),
+                    "filename": res.get("filename", "Unknown"),
+                    "page": res.get("page", "?"),
+                    "text": res.get("text", "")[:200] + "..." if len(res.get("text", "")) > 200 else res.get("text", ""),
+                    "score": res.get("score", 0)
+                })
+            
+            cited = len(sources) > 0 and "[Source" in answer
+            supported = False # Not running full support check on agentic yet for speed
+            add_trace("AGENT_COMPLETE", f"Agentic workflow finished", agent_latency)
+        except Exception as e:
+            answer = f"Agentic workflow error: {e}"
+            add_trace("ERROR", f"Agentic pipeline failed: {e}")
+    
+    else:
+        # Fallback to DIRECT
+        try:
+            answer = llm_provider.generate(prompt=request.query, system_prompt="You are NexusLLM, an advanced AI assistant.")
+            add_trace("LLM_GENERATION", "Fallback direct generation")
+        except Exception as e:
+            answer = f"Error: {e}"
+            add_trace("ERROR", str(e))
+    
+    # Final trace
+    total_latency = (time.time() - start_time) * 1000
+    gen_grounded = cited and supported
+    add_trace("RESPONSE", f"Total latency: {total_latency:.0f}ms | Mode: {resolved_mode} | Cited: {cited} | Supported: {supported}")
     
     return QueryResponse(
-        answer=state.response,
+        answer=answer,
         sources=sources,
-        trace=state.trace,
-        run_id=run_id
+        trace=trace,
+        run_id=run_id,
+        grounded=gen_grounded,  # Genuine semantic grounding
+        routing_mode=resolved_mode
     )
 
 @api_router.get("/status")
 def system_status():
-    return {"status": "operational", "indexed_documents": 0}
+    from vectorstore.qdrant_client import vector_store
+    try:
+        info = vector_store.client.get_collection(vector_store.collection_name)
+        count = info.vectors_count
+    except:
+        count = 0
+    return {"status": "operational", "indexed_documents": count}

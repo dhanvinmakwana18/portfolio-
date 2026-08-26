@@ -7,38 +7,35 @@ from services.rag import (
     assemble_context
 )
 
-def retrieve_documents(query: str, limit: int = 5):
+def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank"):
     """
-    Retrieves documents using True Hybrid Search (Dense + Sparse),
-    fuses candidates, reranks, and assembles the context.
-    Returns: (context_string, sources_list)
+    Retrieves documents. Modes: dense, sparse, hybrid, rerank.
     """
-    # 1. Query Analysis / Transformation
     optimized_query = transform_query(query)
-    
     if not optimized_query:
         return "", []
         
-    # Sync BM25 on first run if needed
     if not bm25_store._is_synced:
         bm25_store.sync_from_qdrant(vector_store)
 
-    # 2. Dense & Sparse Retrieval
-    dense_candidates = vector_store.search(optimized_query, limit=20)
-    sparse_candidates = bm25_store.search(optimized_query, limit=20)
+    dense_cands = vector_store.search(optimized_query, limit=20) if retrieval_mode in ["dense", "hybrid", "rerank"] else []
+    sparse_cands = bm25_store.search(optimized_query, limit=20) if retrieval_mode in ["sparse", "hybrid", "rerank"] else []
     
-    if not dense_candidates and not sparse_candidates:
-        return "", []
-        
-    # 3. Candidate Fusion (RRF)
-    fused_candidates = reciprocal_rank_fusion(dense_candidates, sparse_candidates, limit=20)
+    if retrieval_mode == "dense":
+        candidates = dense_cands
+        for c in candidates: c["rerank_score"] = c["score"]
+    elif retrieval_mode == "sparse":
+        candidates = sparse_cands
+        for c in candidates: c["rerank_score"] = c["score"]
+    else:
+        # Hybrid or Rerank
+        fused = reciprocal_rank_fusion(dense_cands, sparse_cands, limit=20)
+        if retrieval_mode == "hybrid":
+            candidates = fused
+            for c in candidates: c["rerank_score"] = c.get("rrf_score", 0)
+        else:
+            candidates = reranker_service.rerank(optimized_query, fused, limit=limit)
     
-    # 4. Reranking
-    reranked_candidates = reranker_service.rerank(optimized_query, fused_candidates, limit=limit)
-    
-    # 5. Context Assembly
-    # We apply a low relevance threshold to filter out complete garbage.
-    # If the reranker is down, it uses base RRF scores which are >0.
-    context, sources = assemble_context(reranked_candidates, relevance_threshold=-10.0)
-    
+    candidates = candidates[:limit]
+    context, sources = assemble_context(candidates, relevance_threshold=None)
     return context, sources

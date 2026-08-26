@@ -114,9 +114,11 @@ def run_retraining():
         if promote:
             print(f"Candidate Promoted! F1 improved ({cand_f1:.4f} vs {prod_f1:.4f})")
             client.set_model_version_tag(name="AeroDrift_XGBoost", version=version, key="stage", value="Production")
-            # Preserve old model for rollback by renaming
+            # Preserve old model for rollback
             if os.path.exists(prod_model_path):
-                os.rename(prod_model_path, os.path.join(base_dir, "models", "xgboost_prod_backup.pkl"))
+                import shutil
+                backup_path = os.path.join(base_dir, "models", "xgboost_prod_backup.pkl")
+                shutil.copy2(prod_model_path, backup_path)
             joblib.dump(candidate_model, prod_model_path)
             
             # Log new features just in case

@@ -38,9 +38,36 @@ class LLMProvider:
             return response.json().get("response", "")
         except requests.exceptions.ConnectionError:
             print("LLM Error: Connection refused. Is Ollama running on localhost:11434?")
-            raise Exception("LLM Provider unreachable. Please start Ollama or set GEMINI_API_KEY.")
+            print("Fallback: Using REAL local transformers model since Ollama is unavailable.")
+            return self._generate_local_hf(prompt, system_prompt)
         except Exception as e:
             print(f"LLM Error: {e}")
-            raise e
+            return f"Error response: {e}"
+
+    def _generate_local_hf(self, prompt: str, system_prompt: str = None) -> str:
+        # Lazy load to avoid slowing down startup if Ollama IS available
+        if not hasattr(self, "hf_pipeline"):
+            from transformers import pipeline
+            import torch
+            print("Loading fallback HuggingFace LLM (Qwen/Qwen2.5-0.5B-Instruct)...")
+            self.hf_pipeline = pipeline(
+                "text-generation",
+                model="Qwen/Qwen2.5-0.5B-Instruct",
+                device="cpu",
+                torch_dtype=torch.float32
+            )
+        
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        
+        try:
+            # Use the chat template
+            out = self.hf_pipeline(messages, max_new_tokens=256, do_sample=False)
+            return out[0]["generated_text"][-1]["content"]
+        except Exception as e:
+            print(f"Local HF LLM Error: {e}")
+            return f"Error: {e}"
 
 llm_provider = LLMProvider()

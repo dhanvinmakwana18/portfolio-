@@ -1,0 +1,31 @@
+{
+  "Dataset size (Mock)": 10,
+  "DENSE_MOCK": {
+    "Recall@3": 0.375,
+    "MRR": 0.3125,
+    "Latency (ms)": 6105.42,
+    "Grounded %": 0.0,
+    "Insufficient Handled %": 100.0
+  },
+  "SPARSE_MOCK": {
+    "Recall@3": 0.375,
+    "MRR": 0.375,
+    "Latency (ms)": 6072.68,
+    "Grounded %": 0.0,
+    "Insufficient Handled %": 100.0
+  },
+  "HYBRID_MOCK": {
+    "Recall@3": 0.375,
+    "MRR": 0.3125,
+    "Latency (ms)": 9226.672101020813,
+    "Grounded %": 0.0,
+    "Insufficient Handled %": 100.0
+  },
+  "RERANK_MOCK": {
+    "Recall@3": 0.375,
+    "MRR": 0.375,
+    "Latency (ms)": 6202.395009994507,
+    "Grounded %": 0.0,
+    "Insufficient Handled %": 100.0
+  }
+}

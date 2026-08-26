@@ -13,6 +13,8 @@ class EmbeddingProvider:
 
     @property
     def vector_size(self):
+        if hasattr(self.model, 'get_embedding_dimension'):
+            return self.model.get_embedding_dimension()
         return self.model.get_sentence_embedding_dimension()
 
 embedding_provider = EmbeddingProvider()

@@ -17,7 +17,7 @@ def evaluate_retrieval():
     for q in queries:
         start = time.time()
         try:
-            res = requests.post("http://localhost:8000/api/v1/chat", json={"query": q, "mode": "rag"}, timeout=120)
+            res = requests.post("http://localhost:8001/api/v1/chat", json={"query": q, "mode": "rag"}, timeout=120)
             if res.status_code == 200:
                 success += 1
         except Exception as e:

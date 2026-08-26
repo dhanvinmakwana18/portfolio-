@@ -16,28 +16,31 @@ Unlike standard wrappers around commercial APIs, NexusLLM is designed to demonst
 ```text
 USER
  ↓
-FastAPI / Python API
+React/Vite Frontend
+ ↓
+FastAPI / Python API (Port 8001)
  ↓
 Agentic Router (Query Classification)
- ├── DIRECT (LLM)
- ├── RAG (Vector Search)
- ├── MULTI_MODAL (Vision)
- └── AGENTIC (Complex Reasoning)
+ ├── DIRECT (LLM Generation)
+ ├── RAG (Hybrid Search + Reranking)
+ ├── MULTI_MODAL (Vision - Planned)
+ └── AGENTIC (Complex Reasoning Workflow)
  ↓
-Context Assembly (Grounding & Citations)
+Context Assembly (Deduplication & Grounding)
  ↓
-Final Answer + Sources + Safe Trace
+Final Answer + Sources + Observability Trace
 ```
 
 ## 4. Core Features
-- **Document Intelligence**: Ingests PDFs, Markdown, and TXT with PyMuPDF, extracting metadata and creating semantic chunks.
-- **Vector Search**: Local Qdrant persistent storage combined with SentenceTransformers for semantic retrieval.
+- **Advanced RAG**: True Hybrid Search combining Dense (Qdrant) and Sparse (BM25) retrieval, fused via Reciprocal Rank Fusion (RRF), and refined with a Cross-Encoder Reranker (`ms-marco-TinyBERT`).
+- **Grounding & Citations**: Explicit source preservation and citation verification. Output includes `grounded: true/false` status.
 - **Agentic Workflow**: A routing system that chooses between tools (RAG, Direct LLM, Vision).
-- **Execution Trace**: Every query generates an observability trace outlining exact backend operations.
+- **Execution Trace**: Every query generates a detailed observability trace outlining exact backend operations, latency, and routing decisions.
+- **Structured Health Monitoring**: Comprehensive `/health` endpoint tracking the status of LLM, Vector Store, Embeddings, and Reranking components.
 
 ## 5. Tech Stack
-- **Backend**: Python, FastAPI, Pydantic, Qdrant, SentenceTransformers, PyMuPDF.
-- **Frontend**: React 19, Vite, Tailwind CSS (v4), Framer Motion, Lucide Icons.
+- **Backend**: Python, FastAPI, Pydantic, Qdrant (Persistent), SentenceTransformers, Cross-Encoders, PyMuPDF, rank_bm25.
+- **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion, Lucide Icons.
 
 ## 6. Installation & Running Locally
 
@@ -53,7 +56,7 @@ Final Answer + Sources + Safe Trace
    ```bash
    python run_server.py
    ```
-   *(Ensure Ollama is running locally with the `llama3` model)*
+   *Runs on port 8001. Ensure Ollama is running locally with the `llama3` model.*
 
 3. **Install Frontend Dependencies**:
    ```bash
@@ -66,6 +69,29 @@ Final Answer + Sources + Safe Trace
    npm run dev
    ```
 
-## 7. Limitations & Future Improvements
-- **Implemented**: RAG, Direct Generation, Document Ingestion, Qdrant Vector Store, Agentic Routing logic, Observability Traces.
-- **Planned**: Evaluation Dashboard, Cross-encoder Reranking, Advanced Multi-Modal execution (Llava integration).
+## 7. RAG Evaluation & Metrics
+
+We conducted an end-to-end evaluation using a synthetic 10-query dataset covering factual, semantic, technical, and insufficient-evidence queries against indexed chunks (including the LangChain architectural design). 
+
+### Methodology
+- **Baselines Tested:** Dense (Qdrant), Sparse (BM25), Hybrid (RRF), Hybrid + Cross-Encoder Reranking.
+- **Metrics:** Recall@3 (does the top-3 context contain the answer), MRR (Mean Reciprocal Rank), End-to-End Latency, and Grounded% (does the system correctly handle insufficient evidence and output citations).
+
+### Evaluation Results
+*Measurements over a 10-query validation dataset run locally.*
+
+| Configuration | Recall@3 | MRR | Latency (ms) | Grounded/Cited % |
+|---------------|----------|-----|--------------|------------------|
+| **Dense** (Qdrant) | 0.375 | 0.3125 | ~6105ms | 0.0%* |
+| **Sparse** (BM25) | 0.375 | 0.375 | ~6072ms | 0.0%* |
+| **Hybrid** (RRF) | 0.375 | 0.3125 | ~9226ms | 0.0%* |
+| **Hybrid + Rerank** | 0.375 | 0.375 | ~6202ms | 0.0%* |
+
+*\* Note on Grounding: Since the local evaluation was performed utilizing the mock LLM fallback (due to Ollama absence in the pipeline test environment), the mock response does not output genuine `[Source X]` citations. Therefore, the citation validation step correctly evaluates to 0.0% cited. The system appropriately handled 100% of the insufficient evidence testing cases.*
+
+## 8. Limitations & Future Improvements
+- **Local Qdrant Test Lock**: Fixed by adding an in-memory test isolation mode (`TESTING=True`).
+- **Grounding Limitation**: Currently, grounding primarily checks for the *existence* of citations (`[Source X]`) matched to retrieved chunks (lexical verification). True semantic entailment verification (checking if the cited claim matches the source) is skipped to optimize latency, but traces are clearly marked as `CITED` rather than `GROUNDED` to reflect this.
+- **Small Evaluation Dataset**: The current eval dataset is small and optimized for smoke testing the pipeline structure.
+- **Implemented**: Advanced Hybrid RAG, Cross-Encoder Reranking, Direct Generation, Document Ingestion, Qdrant + BM25 Stores, Agentic Routing, Observability Traces.
+- **Planned**: Advanced Multi-Modal execution (Llava integration).

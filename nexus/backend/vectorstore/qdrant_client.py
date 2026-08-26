@@ -7,8 +7,11 @@ import os
 
 class VectorStore:
     def __init__(self):
-        # Use local persistent storage
-        self.client = QdrantClient(path=settings.QDRANT_STORAGE_PATH)
+        # Use local persistent storage or in-memory for testing
+        if settings.QDRANT_STORAGE_PATH == ":memory:":
+            self.client = QdrantClient(location=":memory:")
+        else:
+            self.client = QdrantClient(path=settings.QDRANT_STORAGE_PATH)
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         
         # Ensure collection exists
