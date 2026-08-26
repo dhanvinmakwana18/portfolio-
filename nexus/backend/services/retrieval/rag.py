@@ -7,7 +7,7 @@ from services.rag import (
     assemble_context
 )
 
-def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank"):
+def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank", dense_weight: float = 1.0, sparse_weight: float = 1.0):
     """
     Retrieves documents. Modes: dense, sparse, hybrid, rerank.
     """
@@ -29,7 +29,7 @@ def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank
         for c in candidates: c["rerank_score"] = c["score"]
     else:
         # Hybrid or Rerank
-        fused = reciprocal_rank_fusion(dense_cands, sparse_cands, limit=20)
+        fused = reciprocal_rank_fusion(dense_cands, sparse_cands, limit=20, dense_weight=dense_weight, sparse_weight=sparse_weight)
         if retrieval_mode == "hybrid":
             candidates = fused
             for c in candidates: c["rerank_score"] = c.get("rrf_score", 0)
