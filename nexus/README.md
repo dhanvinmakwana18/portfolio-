@@ -1,4 +1,4 @@
-# NexusLLM
+﻿# NexusLLM
 
 Autonomous Agentic RAG & Multi-Modal AI Engine
 
@@ -95,3 +95,4 @@ We conducted an end-to-end evaluation using a synthetic 10-query dataset coverin
 - **Small Evaluation Dataset**: The current eval dataset is small and optimized for smoke testing the pipeline structure.
 - **Implemented**: Advanced Hybrid RAG, Cross-Encoder Reranking, Direct Generation, Document Ingestion, Qdrant + BM25 Stores, Agentic Routing, Observability Traces.
 - **Planned**: Advanced Multi-Modal execution (Llava integration).
+
