@@ -163,3 +163,59 @@ The existing chunking strategy splits concepts across arbitrary character bounda
 **HYPOTHESIS CONFIRMED.** Semantic chunking improves dense retrieval quality. However, overlap must be maintained to preserve BM25 performance. 
 We should adopt a semantic chunker with a 200-character overlap fallback.
 
+
+## Experiment 4: Cross-Encoder Reranker Ablation
+**Status:** COMPLETED
+**Objective:** Determine whether the current Cross-Encoder reranker (cross-encoder/ms-marco-TinyBERT-L-2-v2) improves retrieval quality over the Hybrid RRF baseline without unacceptable latency.
+
+### Hypothesis
+Reranking the Top-20 fused candidates using a Cross-Encoder improves the final Top-5 context quality by establishing deeper semantic relationships between the query and text chunks, which RRF alone cannot achieve.
+
+### Configuration
+* **Control:** Dense + BM25 -> RRF (limit=20) -> truncate to Top 5
+* **Experiment:** Dense + BM25 -> RRF (limit=20) -> TinyBERT Reranker -> truncate to Top 5
+* **Frozen Variables:** Semantic chunking (overlap=200), all-MiniLM embeddings, BM25 tokenizer, RRF equal weights (1.0/1.0).
+* **Dataset:** 16 answered queries from the standard evaluation suite.
+
+### Methodology
+Built an isolated retrieval-only ablation evaluator (
+exus/scripts/run_experiment4.py) that bypassed LLM generation to purely measure candidate rank-shifting. The exact same 20 RRF candidates were passed to the reranker to perfectly isolate the reranking behavior.
+
+### Results
+
+| Metric | RRF (Control) | RRF + Reranker | Δ |
+|---|---:|---:|---:|
+| **Recall@3** | 0.4375 | 0.5000 | +0.0625 |
+| **Recall@5** | 0.5000 | 0.5000 | 0.0000 |
+| **MRR** | 0.4083 | 0.4687 | +0.0604 |
+| **nDCG** | 0.4304 | 0.4769 | +0.0465 |
+
+### Paired Analysis & Rank Shift
+* **Improved (HELPED):** 2 queries
+* **Unchanged:** 13 queries
+* **Degraded (HURT):** 1 query
+* **Rank Shift:** 2 relevant chunks promoted, 1 demoted. Average rank change: +1.67 positions.
+
+### Candidate Coverage (Ceiling Analysis)
+* **Relevant evidence present in RRF Top-20:** 8 queries (50%)
+* **Relevant evidence missing from RRF Top-20:** 8 queries (50%)
+* *Insight:* The reranker's impact is severely bottlenecked by initial retrieval. Half the time, the correct chunk isn't even in the candidate pool for the reranker to rescue.
+
+### Query-Level Findings
+* **Major Wins:** 
+  * *"What are the main components of the LangChain ecosystem?"* - RRF ranked the answer at 3 and 5. TinyBERT recognized the semantic relationship and pushed them to 1 and 2 (MRR 0.33 -> 1.0).
+  * *"What is a Document in LangChain?"* - RRF ranked it at 5. TinyBERT pushed it to 1 (MRR 0.20 -> 1.0).
+* **Major Failures:**
+  * *"Can I trace my LLM apps?"* - RRF correctly ranked the chunk at 1. The reranker demoted it slightly to rank 2. (MRR 1.0 -> 0.5).
+
+### Latency
+* **RRF Latency:** ~12.2 ms
+* **Reranker Latency:** ~78.3 ms
+* **Combined Overhead:** ~90.5 ms
+* *Conclusion:* 78ms is an entirely acceptable overhead for a +15% relative improvement in MRR (0.408 -> 0.468).
+
+### Conclusion
+**SUPPORTED.** 
+The current TinyBERT Cross-Encoder provides a measurable, descriptive improvement in retrieval quality (MRR +0.06, nDCG +0.04) with an acceptable sub-100ms latency cost. It successfully salvages semantic relationships that BM25/Dense RRF ranks poorly. 
+However, the system's ceiling is strictly bound by upstream candidate coverage (50%).
+
