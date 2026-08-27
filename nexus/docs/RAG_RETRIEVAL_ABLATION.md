@@ -219,3 +219,44 @@ exus/scripts/run_experiment4.py) that bypassed LLM generation to purely measure 
 The current TinyBERT Cross-Encoder provides a measurable, descriptive improvement in retrieval quality (MRR +0.06, nDCG +0.04) with an acceptable sub-100ms latency cost. It successfully salvages semantic relationships that BM25/Dense RRF ranks poorly. 
 However, the system's ceiling is strictly bound by upstream candidate coverage (50%).
 
+
+## Experiment 5: Upstream Candidate Coverage
+**Status:** INCONCLUSIVE (Corpus Bound)
+**Objective:** Determine whether increasing the upstream candidate pool (Dense/Sparse/RRF K) from 20 to 40 (or 60) recovers relevant chunks that previously missed the reranker's candidate pool, thereby improving final Top-5 retrieval metrics.
+
+### Hypothesis
+A significant portion of relevant chunks are ranked below 20 by BM25/Dense retrieval. Increasing upstream retrieval depth to 40 will pull these chunks into the candidate pool, allowing the TinyBERT reranker to rescue them and promote them into the final Top-5 context.
+
+### Configuration
+* **Control:** K=20 (Dense=20, Sparse=20, RRF pool=20, Rerank Top 5)
+* **Experiment 5A:** K=40 (Dense=40, Sparse=40, RRF pool=40, Rerank Top 5)
+* **Experiment 5B:** K=60 (Dense=60, Sparse=60, RRF pool=60, Rerank Top 5)
+* **Frozen Variables:** Semantic chunking (overlap=200), reranker model, test dataset.
+
+### Candidate Coverage & Metrics Results
+
+| Metric | K20 | K40 | K60 | Δ (K20 -> K40) |
+|---|---:|---:|---:|---:|
+| **Recall@3** | 0.5000 | 0.5000 | 0.5000 | 0.0000 |
+| **Recall@5** | 0.5000 | 0.5000 | 0.5000 | 0.0000 |
+| **MRR** | 0.4688 | 0.4688 | 0.4688 | 0.0000 |
+| **nDCG** | 0.4769 | 0.4769 | 0.4769 | 0.0000 |
+
+### Critical Finding: Corpus Saturation
+**The experiment yielded absolutely zero metric changes.**
+A forensic analysis of the dataset revealed exactly why: **N = 19**.
+The entire production corpus (consisting of the 3 test documents) produces only 19 semantic chunks in total.
+Therefore, retrieving K=20 already pulls 100% of the entire database. 
+The 8 queries classified as "missing from the Top-20 candidate pool" are missing because the expected ground truth text (e.g., "langchain expression language", "machine learning") literally does not exist anywhere within the ingested documents.
+
+### Latency
+* **K20:** ~115ms (Retrieval 14ms + Rerank 101ms)
+* **K40:** ~116ms (Retrieval 12ms + Rerank 103ms)
+* **K60:** ~114ms (Retrieval 13ms + Rerank 101ms)
+* *Note:* Latency remains identical because the reranker is only ever processing the same 19 physical chunks.
+
+### Conclusion
+**INCONCLUSIVE.** We cannot measure the effect of upstream candidate depth > 20 because the existing evaluation corpus contains fewer than 20 chunks. The current ceiling on retrieval (MRR ~0.468) is entirely artificial, bound by unanswerable evaluation queries rather than retrieval system failures. 
+
+### Recommendation
+Retain K=20 for production. Before conducting any further retrieval depth or threshold experiments, the evaluation dataset must be paired with a representative document corpus that actually contains the expected answers, and N (total chunks) must heavily exceed K (candidate depth).
