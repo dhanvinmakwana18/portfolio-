@@ -7,7 +7,7 @@ from services.rag import (
     assemble_context
 )
 
-def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank", dense_weight: float = 1.0, sparse_weight: float = 1.0, candidate_depth: int = 20):
+def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank", dense_weight: float = 1.0, sparse_weight: float = 1.0, candidate_depth: int = 20, expand_neighbors: bool = False):
     """
     Retrieves documents. Modes: dense, sparse, hybrid, rerank.
     """
@@ -37,6 +37,5 @@ def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank
             candidates = reranker_service.rerank(optimized_query, fused, limit=limit)
     
     candidates = candidates[:limit]
-    context, sources = assemble_context(candidates, relevance_threshold=None)
+    context, sources = assemble_context(candidates, relevance_threshold=None, expand_neighbors=expand_neighbors)
     return context, sources
-
