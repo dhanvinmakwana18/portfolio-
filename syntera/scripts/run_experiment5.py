@@ -4,7 +4,7 @@ import sys
 import time
 import math
 
-sys.path.insert(0, os.path.abspath('nexus/backend'))
+sys.path.insert(0, os.path.abspath('syntera/backend'))
 
 from services.rag.query_transform import transform_query
 from services.rag.fusion import reciprocal_rank_fusion
@@ -12,12 +12,12 @@ from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
 from services.rag.reranker import reranker_service
 
-os.makedirs('nexus/scripts/experiments', exist_ok=True)
+os.makedirs('syntera/scripts/experiments', exist_ok=True)
 
 if not bm25_store._is_synced:
     bm25_store.sync_from_qdrant(vector_store)
 
-with open('nexus/scripts/eval_dataset.json', 'r') as f:
+with open('syntera/scripts/eval_dataset.json', 'r') as f:
     dataset = [case for case in json.load(f) if case.get('should_answer', False)]
 
 def get_ranks(candidates, expected):
@@ -118,7 +118,7 @@ experiment_artifact = {
     "queries": {str(k): results[k] for k in k_values}
 }
 
-with open('nexus/scripts/experiments/candidate_coverage_ablation.json', 'w') as f:
+with open('syntera/scripts/experiments/candidate_coverage_ablation.json', 'w') as f:
     json.dump(experiment_artifact, f, indent=2)
     
-print("Evaluation complete. Results saved to nexus/scripts/experiments/candidate_coverage_ablation.json")
+print("Evaluation complete. Results saved to syntera/scripts/experiments/candidate_coverage_ablation.json")

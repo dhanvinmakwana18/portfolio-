@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Cpu, Layout, FileText, ChevronRight, ShieldCheck, ShieldAlert, Wifi, WifiOff, AlertCircle } from 'lucide-react';
-import { chatWithNexus, getHealth } from '../api/client';
+import { chatWithSyntera, getHealth } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Message = {
@@ -50,7 +50,7 @@ export default function ChatView() {
     setLoading(true);
 
     try {
-      const response = await chatWithNexus(userQuery, mode);
+      const response = await chatWithSyntera(userQuery, mode);
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: response.answer,
@@ -62,7 +62,7 @@ export default function ChatView() {
     } catch (error: any) {
       const errData = error?.response?.data;
       const errorCode = errData?.error_code || 'BACKEND_OFFLINE';
-      const errorMsg = errData?.detail || 'Failed to connect to the NexusLLM backend engine.';
+      const errorMsg = errData?.detail || 'Failed to connect to the Syntera backend engine.';
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: `⚠️ ${errorMsg}`,
@@ -84,7 +84,7 @@ export default function ChatView() {
         {/* Header */}
         <div className="h-16 border-b border-zinc-800/60 bg-zinc-950/30 backdrop-blur-md flex items-center px-6 justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-white">NexusLLM Engine</h2>
+            <h2 className="text-sm font-semibold text-white">Syntera Engine</h2>
             <div className={`flex items-center gap-1.5 text-[10px] font-mono ${healthColor} px-2 py-1 rounded-full border border-current/20 bg-current/5`}>
               <HealthIcon size={10} />
               {healthStatus}
@@ -199,7 +199,7 @@ export default function ChatView() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Query the Nexus Engine..."
+              placeholder="Query the Syntera Engine..."
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-4 pr-12 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-white placeholder-zinc-500 shadow-inner"
               disabled={loading}
             />

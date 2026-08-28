@@ -13,7 +13,7 @@ const healthApi = axios.create({
   timeout: 5000,
 });
 
-export const chatWithNexus = async (query: string, mode: string = 'auto') => {
+export const chatWithSyntera = async (query: string, mode: string = 'auto') => {
   const response = await api.post('/chat', { query, mode });
   return response.data;
 };

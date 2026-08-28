@@ -58,13 +58,13 @@ export const PROJECTS: Project[] = [
     image: "https://images.unsplash.com/photo-1544724569-5f546fd6f2b6?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    id: "nexus-llm",
-    title: "NexusLLM: Autonomous Agentic RAG & Multi-Modal Engine",
+    id: "syntera",
+    title: "Syntera: Intelligent Retrieval & Grounding & Multi-Modal Engine",
     subtitle: "Enterprise-grade Retrieval-Augmented Generation & Tool-Calling Agent System",
     category: "LLMs & GenAI",
     badge: "LLM Systems",
     description: "Distributed multimodal agent framework featuring dynamic query routing, self-correcting RAG verification loops, hybrid dense-sparse vector indexing, and tool execution orchestration for complex analytical queries.",
-    longDescription: "NexusLLM is an end-to-end autonomous reasoning framework designed to overcome hallucination and context-window constraints in large language models. It introduces self-reflective verification layers where candidate answers are cross-examined against retrieved chunk citations before response synthesis. The system seamlessly handles multimodal input (tabular datasets, image charts, technical documents) via combined Vision-Language backbones and custom semantic embeddings.",
+    longDescription: "Syntera is an end-to-end autonomous reasoning framework designed to overcome hallucination and context-window constraints in large language models. It introduces self-reflective verification layers where candidate answers are cross-examined against retrieved chunk citations before response synthesis. The system seamlessly handles multimodal input (tabular datasets, image charts, technical documents) via combined Vision-Language backbones and custom semantic embeddings.",
     problem: "LLMs suffer from hallucinations, limited context windows, and inability to interact with multimodal enterprise data effectively.",
     solution: "Built a distributed multimodal agent framework with dynamic routing, self-correcting RAG verification, and hybrid indexing.",
     results: "Achieved <110ms retrieval latency, reduced hallucinations by 42%, and supported 128k token context with 96.4% precision.",
@@ -175,25 +175,25 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Artificial Intelligence",
         description: "Designing intelligent systems using modern machine learning and deep learning techniques.",
         technologies: ["Python", "PyTorch", "TensorFlow", "Neural Networks"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "LLMs & Transformers",
         description: "Building generative and conversational architectures with transformer-based language models.",
         technologies: ["Transformers", "Hugging Face", "Prompt Engineering", "LangChain"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "Generative AI",
         description: "Developing multimodal generation pipelines, synthetic data engines, and fine-tuned models.",
         technologies: ["Generative AI Studio", "Stable Diffusion", "LLMs", "Embeddings"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "Agentic AI & RAG",
         description: "Architecting autonomous agents with vector retrieval, knowledge graphs, and tool execution.",
         technologies: ["RAG", "Vector Search", "ChromaDB", "LangGraph"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "Computer Vision",
@@ -213,7 +213,7 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Machine Learning",
         description: "Supervised and unsupervised algorithmic modeling, regression, and classification pipelines.",
         technologies: ["scikit-learn", "XGBoost", "LightGBM", "Model Evaluation"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "Deep Learning",
@@ -225,7 +225,7 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Python",
         description: "Core language ecosystem for scalable AI modeling, data pipelines, and backend APIs.",
         technologies: ["Python", "NumPy", "Pandas", "FastAPI"],
-        projectId: "nexus-llm"
+        projectId: "syntera"
       },
       {
         name: "Statistics & Mathematics",

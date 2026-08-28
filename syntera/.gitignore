@@ -4,7 +4,7 @@ __pycache__/
 *.pyo
 
 # Local vector database (generated at runtime)
-nexus/data/qdrant/
+syntera/data/qdrant/
 data/qdrant/
 
 # Local BM25 state (regenerated from Qdrant on startup)

@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "NexusLLM"
+    PROJECT_NAME: str = "Syntera"
     API_V1_STR: str = "/api/v1"
     
     TESTING: bool = os.getenv("TESTING", "False").lower() in ("true", "1", "yes", "t")

@@ -6,8 +6,8 @@ from services.rag.grounding import validate_citations
 from services.retrieval.rag import retrieve_documents
 
 def test_query_transform():
-    query = "  What   is   NEXUS?  "
-    assert transform_query(query) == "What is NEXUS?"
+    query = "  What   is   SYNTERA?  "
+    assert transform_query(query) == "What is SYNTERA?"
     
 def test_fusion():
     dense = [

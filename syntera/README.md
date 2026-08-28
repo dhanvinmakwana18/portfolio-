@@ -1,12 +1,12 @@
-﻿# NexusLLM
+﻿# Syntera
 
 Autonomous Agentic RAG & Multi-Modal AI Engine
 
 ## 1. Overview
-NexusLLM is an autonomous AI engine that combines agentic routing, retrieval-augmented generation (RAG), vector search, document intelligence, and multi-modal reasoning into a unified execution pipeline. It is built as a robust, local-first backend paired with a futuristic observability frontend.
+Syntera is an autonomous AI engine that combines agentic routing, retrieval-augmented generation (RAG), vector search, document intelligence, and multi-modal reasoning into a unified execution pipeline. It is built as a robust, local-first backend paired with a futuristic observability frontend.
 
-## 2. Why NexusLLM
-Unlike standard wrappers around commercial APIs, NexusLLM is designed to demonstrate real AI engineering principles:
+## 2. Why Syntera
+Unlike standard wrappers around commercial APIs, Syntera is designed to demonstrate real AI engineering principles:
 - **Local-first**: Operates on local models via Ollama and SentenceTransformers.
 - **Agentic Routing**: Deterministically classifies intents and executes the appropriate sub-system.
 - **Traceability**: Exposes operational execution events (latency, tool calls, retrieval counts) safely to the user.

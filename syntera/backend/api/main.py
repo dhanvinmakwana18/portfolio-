@@ -66,7 +66,7 @@ app.include_router(mm_router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
 def health_check():
-    """Comprehensive health check for NexusLLM engine."""
+    """Comprehensive health check for Syntera engine."""
     status = "ONLINE"
     components = {}
     

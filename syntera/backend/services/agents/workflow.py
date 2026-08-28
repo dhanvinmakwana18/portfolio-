@@ -59,7 +59,7 @@ def execute_agent(query: str) -> AgentState:
         state.add_trace("Respond", "Insufficient evidence")
     else:
         system_prompt = (
-            "You are NexusLLM. Use the provided context to answer the user query.\n"
+            "You are Syntera. Use the provided context to answer the user query.\n"
             "If the context does not contain the answer, say 'I cannot find the answer in the provided documents.'\n"
             "Always cite your sources using [Source X] notation. NEVER fabricate a source."
         )

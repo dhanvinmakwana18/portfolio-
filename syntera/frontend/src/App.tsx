@@ -14,7 +14,7 @@ function App() {
             <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Terminal size={18} />
             </div>
-            <h1 className="hidden sm:block font-bold text-white tracking-tight">NexusLLM</h1>
+            <h1 className="hidden sm:block font-bold text-white tracking-tight">Syntera</h1>
           </div>
           
           <nav className="flex-1 w-full space-y-2">

@@ -66,7 +66,7 @@ async def chat_endpoint(request: QueryRequest):
         # Direct LLM call — no retrieval
         gen_start = time.time()
         try:
-            system_prompt = "You are NexusLLM, an advanced AI assistant. Answer the user's question directly and concisely."
+            system_prompt = "You are Syntera, an advanced AI assistant. Answer the user's question directly and concisely."
             answer = llm_provider.generate(prompt=request.query, system_prompt=system_prompt)
             add_trace("LLM_GENERATION", f"Direct response generated", (time.time() - gen_start) * 1000)
             cited = False  # No retrieval = not cited
@@ -105,7 +105,7 @@ async def chat_endpoint(request: QueryRequest):
             else:
                 gen_start = time.time()
                 system_prompt = (
-                    "You are NexusLLM. Use the provided context to answer the user query.\n"
+                    "You are Syntera. Use the provided context to answer the user query.\n"
                     "If the context does not contain the answer, say 'I cannot find the answer in the provided documents.'\n"
                     "Always cite your sources using [Source X] notation. NEVER fabricate a source."
                 )
@@ -171,7 +171,7 @@ async def chat_endpoint(request: QueryRequest):
     else:
         # Fallback to DIRECT
         try:
-            answer = llm_provider.generate(prompt=request.query, system_prompt="You are NexusLLM, an advanced AI assistant.")
+            answer = llm_provider.generate(prompt=request.query, system_prompt="You are Syntera, an advanced AI assistant.")
             add_trace("LLM_GENERATION", "Fallback direct generation")
         except Exception as e:
             answer = f"Error: {e}"
