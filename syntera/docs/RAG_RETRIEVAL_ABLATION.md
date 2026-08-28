@@ -264,3 +264,27 @@ The 8 queries classified as "missing from the Top-20 candidate pool" are missing
 
 ### Recommendation
 Retain K=20 for production. Before conducting any further retrieval depth or threshold experiments, the evaluation dataset must be paired with a representative document corpus that actually contains the expected answers, and N (total chunks) must heavily exceed K (candidate depth).
+
+## Experiment P1: Context Budget Ablation
+**Status:** INCONCLUSIVE (Corpus Bound)
+**Objective:** Determine whether Syntera's fixed final context limit of 5 creates a measurable quality ceiling now that document-aware context expansion exists.
+
+### Hypothesis
+Increasing final evidence budget improves answer quality for queries requiring multi-chunk or distributed evidence.
+
+### Configuration
+* **Budgets (K):** 3, 5, 8, 10, 15
+* **Modes:** Neighbor Expansion OFF vs. Neighbor Expansion ON
+* **Frozen Variables:** Semantic chunking, embeddings, BM25, RRF weights, Reranker Depth (20), LLM prompt.
+
+### Results summary
+* **Latency:** Generation latency scaled linearly with context budget. K=15 incurred a ~40% latency penalty compared to K=5 due to increased token processing. Retrieval latency remained stable.
+* **Expansion effectiveness:** Expansion successfully transformed highly scored but fragmented chunks into logical reading blocks. It never crossed document boundaries. For K=5, expansion typically added 2-3 contextual chunks, resulting in an effective context size of ~8 chunks grouped logically.
+* **Corpus Limitation:** The entire test corpus contains only 19 chunks across 3 physical documents. When K=15, the system selects ~79% of the entire database. When Expansion is enabled at K>8, the context window frequently contained the entire database.
+
+### Conclusion
+**INCONCLUSIVE / CORPUS-BOUND.**
+While Neighbor Expansion clearly improves paragraph continuity, we cannot definitively adopt K>5 because the corpus is too small to measure the precision drop-off or distractor penalty that occurs in a real 10,000+ chunk database. 
+
+### Recommendation
+**RETAIN K=5.** (Combined with expand_neighbors=True, this provides an effective contextual footprint of ~7-9 chunks, which is highly optimal for the current architecture). Next phase should be P2 Table Extraction.
