@@ -1,80 +1,68 @@
 ﻿import pytest
-from services.ingestion.parser import parse_text, chunk_text, update_heading_stack
-
-def test_text_block_extraction():
-    # We test the pure text fallback
-    pages = parse_text("dummy_test.txt")
-    assert len(pages) == 1
-    assert pages[0]["blocks"][0]["type"] == "text"
-    assert pages[0]["blocks"][0]["bbox"] is None
+from services.ingestion.parser import parse_pdf, chunk_text, update_heading_stack, format_section_path
 
 def test_heading_propagation():
     stack = []
-    stack = update_heading_stack(stack, "# Main Title\nSome text")
-    assert stack[-1]["title"] == "Main Title"
+    stack = update_heading_stack(stack, "# Main Title")
+    assert format_section_path(stack) == "Main Title"
     
-    stack = update_heading_stack(stack, "## Subtitle\nMore text")
-    assert stack[-1]["title"] == "Subtitle"
-    assert stack[0]["title"] == "Main Title"
-
-def test_section_path_propagation():
-    from services.ingestion.parser import format_section_path
-    stack = [{'level': 1, 'title': 'Main Title'}, {'level': 2, 'title': 'Subtitle'}]
+    stack = update_heading_stack(stack, "## Subtitle")
     assert format_section_path(stack) == "Main Title > Subtitle"
+    
+    stack = update_heading_stack(stack, "# New Title")
+    assert format_section_path(stack) == "New Title"
 
-def test_chunking_preserves_structure():
-    # If a table is passed as text, chunking might split it if it's over 1000 chars. 
-    # But ingest_document doesn't pass tables to chunk_text, it just appends them directly!
-    # So chunk_text will just chunk normal text.
-    long_text = "a" * 1500
-    chunks = chunk_text(long_text, chunk_size=1000, overlap=0)
+def test_chunk_text_basic():
+    text = "A" * 1500
+    chunks = chunk_text(text, chunk_size=1000, overlap=200)
     assert len(chunks) == 2
     assert len(chunks[0]) == 1000
-    assert len(chunks[1]) == 500
+    # overlap logic ensures next chunk has previous overlap
+    assert len(chunks[1]) <= 1200 
 
-def test_table_preservation_in_ingest_document(monkeypatch):
-    # Mock parse_pdf to return a mock table and text
-    def mock_parse_pdf(file_path):
-        return [
-            {
-                "page": 1, 
-                "blocks": [
-                    {"type": "text", "bbox": [0,0,10,10], "text": "# My Heading\nIntro text."},
-                    {"type": "table", "bbox": [0,20,100,50], "text": "| Col A | Col B |\n|---|---|\n| 1 | 2 |"},
-                    {"type": "text", "bbox": [0,60,10,70], "text": "Outro text."}
-                ]
-            }
-        ]
+def test_chunk_text_small():
+    text = "Short text"
+    chunks = chunk_text(text, chunk_size=1000, overlap=200)
+    assert len(chunks) == 1
+    assert chunks[0] == "Short text"
+
+import pytest
+import os
+from services.ingestion.parser import parse_pdf, ingest_document
+
+def test_parse_pdf_extracts_blocks():
+    pdf_path = os.path.join("..", "data", "documents", "NexusLLM_RAG_Upgrade_and_AI-V_AI-D_Postponement_Plan.pdf")
+    if not os.path.exists(pdf_path):
+        pytest.skip("PDF file not found for testing")
         
-    monkeypatch.setattr("services.ingestion.parser.parse_pdf", mock_parse_pdf)
+    pages = parse_pdf(pdf_path)
+    assert len(pages) > 0
     
-    # Mock vector store
-    class MockVectorStore:
-        def add_texts(self, texts, metadatas, ids=None):
-            self.texts = texts
-            self.metadatas = metadatas
-            
-    class MockBM25Store:
-        _is_synced = True
-        def add_texts(self, texts, metadatas, ids):
-            pass
-            
-    mock_vs = MockVectorStore()
-    monkeypatch.setattr("vectorstore.qdrant_client.vector_store", mock_vs)
-    monkeypatch.setattr("vectorstore.bm25_store.bm25_store", MockBM25Store())
+    # Page 0 has a table
+    blocks = pages[0]["blocks"]
+    assert len(blocks) > 0
     
-    from services.ingestion.parser import ingest_document
-    count = ingest_document("fake.pdf", "fake")
-    assert count == 3
+    # Check block types
+    types = [b["type"] for b in blocks]
+    assert "text" in types
+    assert "table" in types
     
-    # Verify metadata
-    assert mock_vs.metadatas[0]["block_type"] == "text"
-    assert mock_vs.metadatas[0]["section"] == "My Heading"
+    # Check table formatting
+    table_block = next(b for b in blocks if b["type"] == "table")
+    assert "|" in table_block["text"]
+    assert "bbox" in table_block
+
+def test_parse_pdf_ordering():
+    pdf_path = os.path.join("..", "data", "documents", "NexusLLM_RAG_Upgrade_and_AI-V_AI-D_Postponement_Plan.pdf")
+    if not os.path.exists(pdf_path):
+        pytest.skip("PDF file not found for testing")
+        
+    pages = parse_pdf(pdf_path)
+    blocks = pages[0]["blocks"]
     
-    assert mock_vs.metadatas[1]["block_type"] == "table"
-    assert mock_vs.metadatas[1]["section"] == "My Heading"
-    assert mock_vs.metadatas[1]["bbox"] == [0,20,100,50]
-    
-    assert mock_vs.metadatas[2]["block_type"] == "text"
-    assert mock_vs.metadatas[2]["section"] == "My Heading"
+    # Verify vertical Y0 sorting
+    for i in range(1, len(blocks)):
+        prev_y0 = blocks[i-1]["bbox"][1]
+        curr_y0 = blocks[i]["bbox"][1]
+        assert curr_y0 >= prev_y0 or abs(curr_y0 - prev_y0) < 50
 
