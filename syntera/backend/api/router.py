@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+﻿from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional, Any
 import time
@@ -10,6 +10,8 @@ class QueryRequest(BaseModel):
     query: str
     mode: str = "auto"  # auto, direct, rag, agentic
     retrieval_mode: str = "rerank"  # dense, sparse, hybrid, rerank
+    context_limit: int = 5
+    expand_neighbors: bool = False
 
 class SourceInfo(BaseModel):
     id: Any = None
@@ -81,7 +83,7 @@ async def chat_endpoint(request: QueryRequest):
         
         ret_start = time.time()
         try:
-            context, source_docs = retrieve_documents(request.query, limit=5, retrieval_mode=request.retrieval_mode)
+            context, source_docs = retrieve_documents(request.query, limit=request.context_limit, retrieval_mode=request.retrieval_mode, expand_neighbors=request.expand_neighbors)
             ret_latency = (time.time() - ret_start) * 1000
             add_trace("RETRIEVAL", f"Retrieved {len(source_docs)} chunks via {request.retrieval_mode}", ret_latency)
             
@@ -92,7 +94,7 @@ async def chat_endpoint(request: QueryRequest):
                     "filename": res.get("filename", "Unknown"),
                     "page": res.get("page", "?"),
                     "text": res.get("text", "")[:200] + "..." if len(res.get("text", "")) > 200 else res.get("text", ""),
-                    "score": res.get("score", 0)
+                    "score": res.get("score", 0), "section": res.get("section", "Unknown"), "is_expanded": res.get("is_expanded", False), "chunk_index": res.get("chunk_index", -1), "block_type": res.get("block_type", "text"), "bbox": res.get("bbox", None)
                 })
             
             add_trace("CONTEXT_ASSEMBLY", f"Assembled context from {len(sources)} deduplicated chunks")
@@ -158,7 +160,7 @@ async def chat_endpoint(request: QueryRequest):
                     "filename": res.get("filename", "Unknown"),
                     "page": res.get("page", "?"),
                     "text": res.get("text", "")[:200] + "..." if len(res.get("text", "")) > 200 else res.get("text", ""),
-                    "score": res.get("score", 0)
+                    "score": res.get("score", 0), "section": res.get("section", "Unknown"), "is_expanded": res.get("is_expanded", False), "chunk_index": res.get("chunk_index", -1), "block_type": res.get("block_type", "text"), "bbox": res.get("bbox", None)
                 })
             
             cited = len(sources) > 0 and "[Source" in answer
@@ -200,3 +202,6 @@ def system_status():
     except:
         count = 0
     return {"status": "operational", "indexed_documents": count}
+
+
+

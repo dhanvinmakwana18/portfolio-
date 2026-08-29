@@ -88,7 +88,7 @@
                 "chunk_index": chunk_index,
                 "text": text,
                 "score": score,
-                "is_expanded": is_expanded
+                "is_expanded": is_expanded, "block_type": payload.get("block_type", "text"), "bbox": payload.get("bbox", None)
             })
             
             context += f"[Source {source_idx}] (File: {source}, Section: {section_path}, Page: {page}):\n{text}\n\n"
@@ -103,3 +103,4 @@ def assemble_context(candidates, relevance_threshold=None, expand_neighbors=Fals
             valid_candidates.append(c)
             
     return expand_and_organize_context(valid_candidates, expand_neighbors)
+

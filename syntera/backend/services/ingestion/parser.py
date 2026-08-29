@@ -1,6 +1,7 @@
-﻿import fitz  # PyMuPDF
+import fitz  # PyMuPDF
 import os
 import re
+import uuid
 
 def parse_pdf(file_path: str):
     """Extracts text and page metadata from a PDF file."""
@@ -8,14 +9,57 @@ def parse_pdf(file_path: str):
     pages = []
     for page_num in range(len(doc)):
         page = doc.load_page(page_num)
-        text = page.get_text("text")
-        if text.strip():
-            pages.append({"page": page_num + 1, "text": text})
+        
+        tables = page.find_tables()
+        table_bboxes = []
+        table_blocks = []
+        
+        if tables and tables.tables:
+            for i, tab in enumerate(tables.tables):
+                bbox = tab.bbox
+                table_bboxes.append(bbox)
+                table_blocks.append({
+                    "type": "table",
+                    "bbox": [round(c, 2) for c in bbox],
+                    "text": tab.to_markdown()
+                })
+                
+        blocks = page.get_text("blocks")
+        text_blocks = []
+        for b in blocks:
+            if b[6] == 0:  # Text block
+                bbox = (b[0], b[1], b[2], b[3])
+                text = b[4].strip()
+                if not text: continue
+                
+                is_in_table = False
+                for t_bbox in table_bboxes:
+                    # Check if text block overlaps significantly with a table
+                    r1 = fitz.Rect(bbox)
+                    r2 = fitz.Rect(t_bbox)
+                    intersect = r1.intersect(r2)
+                    if intersect.get_area() > r1.get_area() * 0.5:
+                        is_in_table = True
+                        break
+                
+                if not is_in_table:
+                    text_blocks.append({
+                        "type": "text",
+                        "bbox": [round(c, 2) for c in bbox],
+                        "text": text
+                    })
+                    
+        all_blocks = table_blocks + text_blocks
+        all_blocks.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
+        
+        if all_blocks:
+            pages.append({"page": page_num + 1, "blocks": all_blocks})
+            
     return pages
 
 def parse_text(file_path: str):
     with open(file_path, "r", encoding="utf-8") as f:
-        return [{"page": 1, "text": f.read()}]
+        return [{"page": 1, "blocks": [{"type": "text", "bbox": None, "text": f.read()}]}]
 
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200):
     separators = [
@@ -112,32 +156,75 @@ def ingest_document(file_path: str, filename: str):
     current_heading_stack = []
     
     for page_data in pages:
-        chunks = chunk_text(page_data["text"])
-        for chunk in chunks:
-            current_heading_stack = update_heading_stack(current_heading_stack, chunk)
-            section_path = format_section_path(current_heading_stack)
-            section = current_heading_stack[-1]['title'] if current_heading_stack else "Root"
+        page_num = page_data["page"]
+        current_chunk_text = ""
+        current_chunk_bbox = None
+        
+        # Helper to flush accumulated text chunks
+        def flush_text():
+            nonlocal current_chunk_text, current_chunk_bbox, global_chunk_index, current_heading_stack
+            if not current_chunk_text:
+                return
             
-            chunk_id = f"{filename}_chunk_{global_chunk_index}"
-            
-            all_chunks.append(chunk)
-            all_metadatas.append({
-                "source": filename,
-                "page": page_data["page"],
-                "section": section,
-                "section_path": section_path,
-                "chunk_id": chunk_id,
-                "chunk_index": global_chunk_index,
-                "type": "document"
-            })
-            global_chunk_index += 1
+            text_chunks = chunk_text(current_chunk_text)
+            for chunk in text_chunks:
+                current_heading_stack = update_heading_stack(current_heading_stack, chunk)
+                section_path = format_section_path(current_heading_stack)
+                section = current_heading_stack[-1]['title'] if current_heading_stack else "Root"
+                
+                chunk_id = f"{filename}_chunk_{global_chunk_index}"
+                all_chunks.append(chunk)
+                all_metadatas.append({
+                    "source": filename,
+                    "page": page_num,
+                    "section": section,
+                    "section_path": section_path,
+                    "chunk_id": chunk_id,
+                    "chunk_index": global_chunk_index,
+                    "type": "document",
+                    "block_type": "text",
+                    "bbox": current_chunk_bbox
+                })
+                global_chunk_index += 1
+            current_chunk_text = ""
+            current_chunk_bbox = None
+
+        for block in page_data["blocks"]:
+            if block["type"] == "table":
+                flush_text()
+                
+                # Treat the table as a single intact chunk
+                chunk = block["text"]
+                current_heading_stack = update_heading_stack(current_heading_stack, chunk)
+                section_path = format_section_path(current_heading_stack)
+                section = current_heading_stack[-1]['title'] if current_heading_stack else "Root"
+                
+                chunk_id = f"{filename}_chunk_{global_chunk_index}"
+                all_chunks.append(chunk)
+                all_metadatas.append({
+                    "source": filename,
+                    "page": page_num,
+                    "section": section,
+                    "section_path": section_path,
+                    "chunk_id": chunk_id,
+                    "chunk_index": global_chunk_index,
+                    "type": "document",
+                    "block_type": "table",
+                    "bbox": block["bbox"]
+                })
+                global_chunk_index += 1
+            else:
+                # Accumulate text
+                if current_chunk_text:
+                    current_chunk_text += "\n" + block["text"]
+                else:
+                    current_chunk_text = block["text"]
+                    current_chunk_bbox = block["bbox"]
+                    
+        flush_text()
             
     if all_chunks:
-        # Use chunk_id directly as point id? Qdrant allows string UUIDs, but random strings are not valid UUIDs.
-        # We can just generate a valid UUIDv5 from the chunk_id string so it's deterministic.
-        import uuid
         doc_ids = [str(uuid.uuid5(uuid.NAMESPACE_URL, meta["chunk_id"])) for meta in all_metadatas]
-        
         vector_store.add_texts(all_chunks, all_metadatas, ids=doc_ids)
         from vectorstore.bm25_store import bm25_store
         if not bm25_store._is_synced:
