@@ -1,29 +1,97 @@
 import requests
 import os
+import time
 from core.config import settings
 
 class LLMProvider:
     def __init__(self):
-        self.base_url = "http://localhost:11434/api"
+        self.provider = settings.LLM_PROVIDER.lower()
+        self.ollama_base_url = "http://localhost:11434/api"
         self.model = settings.LLM_MODEL
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         
+        # External generic config
+        self.astra_api_key = settings.ASTRA_API_KEY or os.getenv("ASTRA_API_KEY")
+        self.openai_api_key = settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY")
+        
+        # If a base URL is specified, use it. Otherwise for 'openai', fallback to standard.
+        self.base_url = settings.LLM_BASE_URL
+        if self.provider == "openai" and not self.base_url:
+            self.base_url = "https://api.openai.com/v1/chat/completions"
+            
+        self.max_retries = settings.ASTRA_MAX_RETRIES
+
+    def _safe_request(self, url, headers, payload, timeout=60):
+        """Executes a request with exponential backoff and sanitizes errors."""
+        last_err = None
+        for attempt in range(self.max_retries):
+            try:
+                start_time = time.time()
+                response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                response.raise_for_status()
+                return response.json(), (time.time() - start_time) * 1000
+            except requests.exceptions.RequestException as e:
+                # Sanitize authorization headers in error messages
+                if hasattr(e, 'request') and e.request:
+                    if 'Authorization' in e.request.headers:
+                        e.request.headers['Authorization'] = 'REDACTED'
+                last_err = str(e)
+                # Ensure the actual secret string doesn't leak in the text of the error
+                if self.astra_api_key:
+                    last_err = last_err.replace(self.astra_api_key, 'REDACTED')
+                if self.openai_api_key:
+                    last_err = last_err.replace(self.openai_api_key, 'REDACTED')
+                    
+                time.sleep(2 ** attempt)  # Exponential backoff
+        raise Exception(f"Max retries ({self.max_retries}) exceeded. Last error: {last_err}")
+
     def generate(self, prompt: str, system_prompt: str = None) -> str:
-        if self.gemini_api_key:
-            # Optional Cloud Adapter
+        if self.provider in ["astra", "openai"]:
+            key = self.astra_api_key if self.provider == "astra" else self.openai_api_key
+            if not key:
+                raise ValueError(f"API key is required for {self.provider} provider.")
+            if not self.base_url:
+                raise ValueError(f"LLM_BASE_URL must be defined for {self.provider} integration.")
+                
+            headers = {
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json"
+            }
+            
+            # Assuming an OpenAI-compatible REST API structure
+            payload = {
+                "model": settings.ASTRA_MODEL if self.provider == "astra" else self.model,
+                "messages": [],
+                "temperature": settings.ASTRA_TEMPERATURE
+            }
+            if system_prompt:
+                payload["messages"].append({"role": "system", "content": system_prompt})
+            payload["messages"].append({"role": "user", "content": prompt})
+            
+            try:
+                data, latency = self._safe_request(self.base_url, headers, payload)
+                # Parse OpenAI compatible schema
+                if "choices" in data and len(data["choices"]) > 0:
+                    return data["choices"][0]["message"]["content"]
+                else:
+                    return str(data) # Fallback if schema differs
+            except Exception as e:
+                print(f"External API Error: {e}")
+                return f"Error response: {e}"
+
+        elif self.provider == "gemini" or self.gemini_api_key:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
             payload = {
                 "contents": [{"parts": [{"text": (system_prompt + "\n\n" if system_prompt else "") + prompt}]}]
             }
             try:
-                response = requests.post(url, json=payload, timeout=60)
-                response.raise_for_status()
-                return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                data, _ = self._safe_request(url, {"Content-Type": "application/json"}, payload)
+                return data["candidates"][0]["content"]["parts"][0]["text"]
             except Exception as e:
                 print(f"Gemini API Error: {e}")
-                raise e
+                return f"Error response: {e}"
                 
-        # Local Ollama Provider
+        # Default fallback to Local Ollama Provider
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -33,19 +101,17 @@ class LLMProvider:
             payload["system"] = system_prompt
             
         try:
-            response = requests.post(f"{self.base_url}/generate", json=payload, timeout=60)
-            response.raise_for_status()
-            return response.json().get("response", "")
-        except requests.exceptions.ConnectionError:
-            print("LLM Error: Connection refused. Is Ollama running on localhost:11434?")
-            print("Fallback: Using REAL local transformers model since Ollama is unavailable.")
-            return self._generate_local_hf(prompt, system_prompt)
+            data, _ = self._safe_request(f"{self.ollama_base_url}/generate", {"Content-Type": "application/json"}, payload)
+            return data.get("response", "")
         except Exception as e:
+            if "Connection refused" in str(e):
+                print("LLM Error: Connection refused. Is Ollama running on localhost:11434?")
+                print("Fallback: Using REAL local transformers model since Ollama is unavailable.")
+                return self._generate_local_hf(prompt, system_prompt)
             print(f"LLM Error: {e}")
             return f"Error response: {e}"
 
     def _generate_local_hf(self, prompt: str, system_prompt: str = None) -> str:
-        # Lazy load to avoid slowing down startup if Ollama IS available
         if not hasattr(self, "hf_pipeline"):
             from transformers import pipeline
             import torch
@@ -63,7 +129,6 @@ class LLMProvider:
         messages.append({"role": "user", "content": prompt})
         
         try:
-            # Use the chat template
             out = self.hf_pipeline(messages, max_new_tokens=256, do_sample=False)
             return out[0]["generated_text"][-1]["content"]
         except Exception as e:

@@ -1,5 +1,6 @@
-﻿from vectorstore.qdrant_client import vector_store
+from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
+from core.config import settings
 from services.rag import (
     transform_query,
     reciprocal_rank_fusion,
@@ -7,10 +8,23 @@ from services.rag import (
     assemble_context
 )
 
-def retrieve_documents(query: str, limit: int = 5, retrieval_mode: str = "rerank", dense_weight: float = 1.0, sparse_weight: float = 1.0, candidate_depth: int = 20, expand_neighbors: bool = False):
+def retrieve_documents(
+    query: str, 
+    limit: int = None, 
+    retrieval_mode: str = "rerank", 
+    dense_weight: float = None, 
+    sparse_weight: float = None, 
+    candidate_depth: int = 20, 
+    expand_neighbors: bool = False
+):
     """
     Retrieves documents. Modes: dense, sparse, hybrid, rerank.
+    Uses configurable environment defaults if values are not provided.
     """
+    limit = limit if limit is not None else settings.RETRIEVAL_K
+    dense_weight = dense_weight if dense_weight is not None else settings.DENSE_WEIGHT
+    sparse_weight = sparse_weight if sparse_weight is not None else settings.SPARSE_WEIGHT
+    
     optimized_query = transform_query(query)
     if not optimized_query:
         return "", []
