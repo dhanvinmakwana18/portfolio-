@@ -2,7 +2,7 @@ export interface Project {
   id: string;
   title: string;
   subtitle: string;
-  category: 'LLMs & GenAI' | 'Computer Vision' | 'Deep Learning';
+  category: 'LLMs & GenAI' | 'Computer Vision' | 'Deep Learning' | 'MLOps & Predictive AI';
   description: string;
   longDescription: string;
   problem?: string;
