@@ -45,41 +45,44 @@ class LLMProvider:
                 time.sleep(2 ** attempt)  # Exponential backoff
         raise Exception(f"Max retries ({self.max_retries}) exceeded. Last error: {last_err}")
 
-    def generate(self, prompt: str, system_prompt: str = None) -> str:
-        if self.provider in ["astra", "openai"]:
-            key = self.astra_api_key if self.provider == "astra" else self.openai_api_key
+    def generate(self, prompt: str, system_prompt: str = None, json_mode: bool = False, provider_override: str = None) -> str:
+        active_provider = (provider_override or self.provider).lower()
+        
+        if active_provider in ["astra", "openai"]:
+            key = self.astra_api_key if active_provider == "astra" else self.openai_api_key
             if not key:
-                raise ValueError(f"API key is required for {self.provider} provider.")
+                raise ValueError(f"API key is required for {active_provider} provider.")
             if not self.base_url:
-                raise ValueError(f"LLM_BASE_URL must be defined for {self.provider} integration.")
+                raise ValueError(f"LLM_BASE_URL must be defined for {active_provider} integration.")
                 
             headers = {
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json"
             }
             
-            # Assuming an OpenAI-compatible REST API structure
             payload = {
-                "model": settings.ASTRA_MODEL if self.provider == "astra" else self.model,
+                "model": settings.ASTRA_MODEL if active_provider == "astra" else self.model,
                 "messages": [],
                 "temperature": settings.ASTRA_TEMPERATURE
             }
+            if json_mode:
+                payload["response_format"] = {"type": "json_object"}
+                
             if system_prompt:
                 payload["messages"].append({"role": "system", "content": system_prompt})
             payload["messages"].append({"role": "user", "content": prompt})
             
             try:
                 data, latency = self._safe_request(self.base_url, headers, payload)
-                # Parse OpenAI compatible schema
                 if "choices" in data and len(data["choices"]) > 0:
                     return data["choices"][0]["message"]["content"]
                 else:
-                    return str(data) # Fallback if schema differs
+                    return str(data)
             except Exception as e:
                 print(f"External API Error: {e}")
                 return f"Error response: {e}"
 
-        elif self.provider == "gemini" or self.gemini_api_key:
+        elif active_provider == "gemini" or self.gemini_api_key:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
             payload = {
                 "contents": [{"parts": [{"text": (system_prompt + "\n\n" if system_prompt else "") + prompt}]}]
@@ -97,6 +100,9 @@ class LLMProvider:
             "prompt": prompt,
             "stream": False
         }
+        if json_mode:
+            payload["format"] = "json"
+            
         if system_prompt:
             payload["system"] = system_prompt
             

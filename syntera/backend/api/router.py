@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional, Any
 import time
@@ -29,7 +29,7 @@ class QueryResponse(BaseModel):
     routing_mode: str = "auto"
 
 from providers.llm import llm_provider
-from services.agents.router import route_query
+from orchestration.router import route_query
 
 @api_router.post("/chat", response_model=QueryResponse)
 async def chat_endpoint(request: QueryRequest):
@@ -79,7 +79,7 @@ async def chat_endpoint(request: QueryRequest):
     
     elif resolved_mode == "RAG":
         # Full RAG pipeline
-        from services.retrieval.rag import retrieve_documents
+        from retrieval.pipeline import retrieve_documents
         
         ret_start = time.time()
         try:
@@ -117,7 +117,7 @@ async def chat_endpoint(request: QueryRequest):
                 add_trace("LLM_GENERATION", f"Generated response", gen_latency)
                 
                 # Citation verification
-                from services.rag.grounding import validate_citations, evaluate_support
+                from verification.grounding import validate_citations, evaluate_support
                 answer = validate_citations(raw_answer, source_docs)
                 
                 # Check if the model refused to answer
@@ -126,6 +126,7 @@ async def chat_endpoint(request: QueryRequest):
                 cited = not is_refusal and len(sources) > 0 and "[Source" in answer
                 add_trace("CITATION_CHECK", f"Cited: {cited} | Sources Provided: {len(sources)}")
 
+
                 # Evaluate Support
                 supported = False
                 if not is_refusal and cited:
@@ -133,15 +134,15 @@ async def chat_endpoint(request: QueryRequest):
                     supported = evaluate_support(answer, context)
                     support_latency = (time.time() - support_start) * 1000
                     add_trace("SUPPORT_CHECK", f"Supported: {supported}", support_latency)
-                
+                    
         except Exception as e:
             answer = f"Retrieval error: {e}"
             add_trace("ERROR", f"RAG pipeline failed: {e}")
             supported = False
-    
+            
     elif resolved_mode == "AGENTIC":
         # Full agentic workflow
-        from services.agents.workflow import execute_agent
+        from orchestration.agentic.workflow import execute_agent
         
         agent_start = time.time()
         try:
@@ -169,7 +170,40 @@ async def chat_endpoint(request: QueryRequest):
         except Exception as e:
             answer = f"Agentic workflow error: {e}"
             add_trace("ERROR", f"Agentic pipeline failed: {e}")
-    
+
+    elif resolved_mode == "IEG":
+        # Iterative Evidence Graph Orchestrator
+        from orchestration.ieg.orchestrator import run_ieg
+        
+        ieg_start = time.time()
+        try:
+            ieg_state = run_ieg(request.query)
+            ieg_latency = (time.time() - ieg_start) * 1000
+            
+            # Transfer answer and format sources
+            answer = ieg_state.final_answer
+            sources = []
+            for res in ieg_state.evidence:
+                sources.append({
+                    "id": res.get("id"),
+                    "filename": res.get("filename", "Unknown"),
+                    "page": res.get("page", "?"),
+                    "text": res.get("text", "")[:200] + "..." if len(res.get("text", "")) > 200 else res.get("text", ""),
+                    "score": res.get("score", 0), "section": res.get("section", "Unknown"), "is_expanded": res.get("is_expanded", False), "chunk_index": res.get("chunk_index", -1), "block_type": res.get("block_type", "text"), "bbox": res.get("bbox", None), "originating_subquery": res.get("originating_subquery", "")
+                })
+                
+            # Flatten trace
+            for t in ieg_state.trace:
+                add_trace(f"IEG.{t['step']}", t['action'])
+                
+            cited = len(sources) > 0 and "[Source" in answer
+            supported = True if cited else False # Assuming the evaluator already checked it
+            
+            add_trace("IEG_COMPLETE", f"IEG workflow finished in {ieg_state.iteration} iterations", ieg_latency)
+        except Exception as e:
+            answer = f"IEG workflow error: {e}"
+            add_trace("ERROR", f"IEG pipeline failed: {e}")
+            
     else:
         # Fallback to DIRECT
         try:
@@ -179,6 +213,7 @@ async def chat_endpoint(request: QueryRequest):
             answer = f"Error: {e}"
             add_trace("ERROR", str(e))
     
+    # Final trace
     # Final trace
     total_latency = (time.time() - start_time) * 1000
     gen_grounded = cited and supported

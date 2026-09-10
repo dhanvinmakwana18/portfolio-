@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import shutil
 import os
 from core.config import settings
-from services.ingestion.parser import ingest_document
+from ingestion.parser import ingest_document
 
 kb_router = APIRouter()
 

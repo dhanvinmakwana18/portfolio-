@@ -14,7 +14,7 @@ import os
 # Add backend to path
 sys.path.append(os.path.join(os.getcwd(), 'syntera', 'backend'))
 
-from services.retrieval.rag import retrieve_documents
+from retrieval.pipeline import retrieve_documents
 from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
 from providers.embeddings import embedding_provider

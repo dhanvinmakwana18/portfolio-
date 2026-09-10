@@ -6,11 +6,11 @@ import math
 
 sys.path.insert(0, os.path.abspath('syntera/backend'))
 
-from services.rag.query_transform import transform_query
-from services.rag.fusion import reciprocal_rank_fusion
+from retrieval.query_transform import transform_query
+from retrieval.fusion import reciprocal_rank_fusion
 from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
-from services.rag.reranker import reranker_service
+from retrieval.reranker import reranker_service
 
 os.makedirs('syntera/scripts/experiments', exist_ok=True)
 

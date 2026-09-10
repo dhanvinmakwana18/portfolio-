@@ -1,6 +1,6 @@
 ﻿import pytest
-from services.ingestion.parser import update_heading_stack, format_section_path, chunk_text
-from services.rag.assembler import expand_and_organize_context
+from ingestion.parser import update_heading_stack, format_section_path, chunk_text
+from retrieval.assembler import expand_and_organize_context
 
 def test_heading_stack():
     stack = []

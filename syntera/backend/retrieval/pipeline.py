@@ -1,12 +1,10 @@
 from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
 from core.config import settings
-from services.rag import (
-    transform_query,
-    reciprocal_rank_fusion,
-    reranker_service,
-    assemble_context
-)
+from retrieval.query_transform import transform_query
+from retrieval.fusion import reciprocal_rank_fusion
+from retrieval.reranker import reranker_service
+from retrieval.assembler import assemble_context
 
 def retrieve_documents(
     query: str, 

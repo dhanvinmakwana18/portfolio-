@@ -37,7 +37,7 @@ def test_model_failure(mock_generate):
     assert "Error generating response" in data["answer"] or "MODEL_FAILURE" in data["answer"]
 
 def test_invalid_citation():
-    from services.rag.grounding import validate_citations
+    from verification.grounding import validate_citations
     hallucinated_response = "Here is an answer [Source 99]."
     valid_sources = [{"id": "1", "filename": "test.txt", "text": "content"}]
     validated = validate_citations(hallucinated_response, valid_sources)

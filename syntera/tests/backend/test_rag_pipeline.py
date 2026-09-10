@@ -1,9 +1,9 @@
 import pytest
-from services.rag.query_transform import transform_query
-from services.rag.fusion import reciprocal_rank_fusion
-from services.rag.assembler import assemble_context
-from services.rag.grounding import validate_citations
-from services.retrieval.rag import retrieve_documents
+from retrieval.query_transform import transform_query
+from retrieval.fusion import reciprocal_rank_fusion
+from retrieval.assembler import assemble_context
+from verification.grounding import validate_citations
+from retrieval.pipeline import retrieve_documents
 
 def test_query_transform():
     query = "  What   is   SYNTERA?  "

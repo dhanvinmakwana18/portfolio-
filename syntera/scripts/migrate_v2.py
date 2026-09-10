@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath('syntera/backend'))
 
 from vectorstore.qdrant_client import vector_store
 from vectorstore.bm25_store import bm25_store
-from services.ingestion.parser import ingest_document
+from ingestion.parser import ingest_document
 
 def migrate():
     print("MIGRATING TO V2 DOCUMENT-AWARE SCHEMA...")

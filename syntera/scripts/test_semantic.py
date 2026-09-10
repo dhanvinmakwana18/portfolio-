@@ -80,7 +80,7 @@ def semantic_chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200):
         
     return chunks
 
-from services.ingestion.parser import chunk_text as baseline_chunk_text
+from ingestion.parser import chunk_text as baseline_chunk_text
 
 with open('../data/documents/langchain_readme.txt', 'r', encoding='utf-8') as f:
     text = f.read()

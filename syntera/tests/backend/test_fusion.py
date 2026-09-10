@@ -1,4 +1,4 @@
-﻿from services.rag.fusion import reciprocal_rank_fusion
+﻿from retrieval.fusion import reciprocal_rank_fusion
 
 def test_reciprocal_rank_fusion_weights():
     # Mock data

@@ -4,7 +4,7 @@ import json
 
 sys.path.insert(0, os.path.abspath('syntera/backend'))
 
-from services.retrieval.rag import retrieve_documents
+from retrieval.pipeline import retrieve_documents
 
 print("\n--- VALIDATING STANDARD RETRIEVAL (No Expansion) ---")
 context, sources = retrieve_documents("What is a Document in LangChain?", limit=5, expand_neighbors=False)

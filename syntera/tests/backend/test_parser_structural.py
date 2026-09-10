@@ -1,5 +1,5 @@
 ﻿import pytest
-from services.ingestion.parser import parse_pdf, chunk_text, update_heading_stack, format_section_path
+from ingestion.parser import parse_pdf, chunk_text, update_heading_stack, format_section_path
 
 def test_heading_propagation():
     stack = []
@@ -28,7 +28,7 @@ def test_chunk_text_small():
 
 import pytest
 import os
-from services.ingestion.parser import parse_pdf, ingest_document
+from ingestion.parser import parse_pdf, ingest_document
 
 def test_parse_pdf_extracts_blocks():
     pdf_path = os.path.join("..", "data", "documents", "NexusLLM_RAG_Upgrade_and_AI-V_AI-D_Postponement_Plan.pdf")

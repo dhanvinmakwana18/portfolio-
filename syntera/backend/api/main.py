@@ -109,7 +109,7 @@ def health_check():
     
     # Check reranker
     try:
-        from services.rag.reranker import reranker_service
+        from retrieval.reranker import reranker_service
         if reranker_service.model is not None:
             components["reranker"] = {"status": "ok", "model": reranker_service.model_name}
         else:

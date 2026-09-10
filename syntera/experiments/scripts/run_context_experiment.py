@@ -6,9 +6,9 @@ import hashlib
 
 sys.path.insert(0, os.path.abspath('syntera/backend'))
 
-from services.retrieval.rag import retrieve_documents
+from retrieval.pipeline import retrieve_documents
 from providers.llm import llm_provider
-from services.rag.grounding import validate_citations, evaluate_support
+from verification.grounding import validate_citations, evaluate_support
 
 def run_experiment():
     print("Starting local experiment...", flush=True)

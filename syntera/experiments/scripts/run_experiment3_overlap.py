@@ -8,8 +8,8 @@ from qdrant_client.http.models import VectorParams, Distance, PointStruct
 from sentence_transformers import SentenceTransformer
 from test_semantic import semantic_chunk_text, baseline_chunk_text
 from vectorstore.bm25_store import BM25Store
-from services.rag.fusion import reciprocal_rank_fusion
-from services.rag.query_transform import transform_query
+from retrieval.fusion import reciprocal_rank_fusion
+from retrieval.query_transform import transform_query
 
 with open('../scripts/eval_dataset.json', 'r') as f:
     dataset = json.load(f)

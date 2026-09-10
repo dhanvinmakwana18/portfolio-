@@ -18,7 +18,7 @@ class AgentState:
         
 def execute_agent(query: str) -> AgentState:
     from providers.llm import llm_provider
-    from services.retrieval.rag import retrieve_documents
+    from retrieval.pipeline import retrieve_documents
     
     state = AgentState(query)
     state.add_trace("Init", f"Starting agent workflow for query: '{query}'")
@@ -68,7 +68,7 @@ def execute_agent(query: str) -> AgentState:
         try:
             raw_response = llm_provider.generate(prompt=prompt, system_prompt=system_prompt)
             if "RAG" in intent and sources:
-                from services.rag import validate_citations
+                from retrieval import validate_citations
                 state.response = validate_citations(raw_response, sources)
             else:
                 state.response = raw_response
