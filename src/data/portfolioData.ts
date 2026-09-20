@@ -82,7 +82,7 @@ export const PROJECTS: Project[] = [
       "Multimodal document parser analyzing complex PDF tables, flowcharts, and embedded schematics."
     ],
     architectureOverview: "Client UI / REST -> FastAPI Gateway -> Agent Orchestrator (LangChain / LangGraph) -> Dense/BM25 Hybrid Retrieval (Qdrant & Cross-Encoder Reranker) -> LLM Inference Pipeline (Open-source / OpenAI / Gemini) -> Real-time Token Streaming.",
-    githubUrl: "https://github.com/DhanvinMakwana/NexusLLM-Agentic-RAG",
+    githubUrl: "https://github.com/dhanvinmakwana18/syntera19",
     liveUrl: "",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
   },

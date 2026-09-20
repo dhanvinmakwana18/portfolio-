@@ -73,27 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {PERSONAL_INFO.bio}
           </p>
 
-          {/* Interactive Shell / Model Inference Status Badge */}
-          <div
-            id="terminal-status-pill"
-            className={`w-full max-w-2xl p-4 rounded-2xl mb-10 font-mono text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${
-              isDark
-                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 shadow-lg'
-                : 'bg-white/90 border-zinc-200 text-zinc-700 shadow-md'
-            }`}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <Terminal className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span className="text-emerald-400 shrink-0">dm@ai-engine:~$</span>
-              <span className="truncate text-zinc-400">
-                torch.cuda.is_available() ➔ <strong className="text-blue-400">True (vLLM & TensorRT)</strong>
-              </span>
-            </div>
-            <div className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-fit">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Ready</span>
-            </div>
-          </div>
+
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap items-center gap-4 sm:gap-5 mb-12">
