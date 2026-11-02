@@ -1,6 +1,6 @@
 # Dhanvin Makwana | Portfolio
 
-An interactive, dark-themed personal portfolio built for **Dhanvin Makwana** — AI Engineer & Data Scientist. Highlights projects in Large Language Models (Agentic RAG) and Edge-Optimized Computer Vision.
+An interactive, dark-themed personal portfolio built for **Dhanvin Makwana** — AI Engineer & Data Scientist. Highlights projects in Predictive ML & MLOps, Large Language Models (Agentic RAG), and Edge-Optimized Computer Vision.
 
 ## 🌟 Key Features
 
@@ -8,7 +8,7 @@ An interactive, dark-themed personal portfolio built for **Dhanvin Makwana** —
 * **3D Magnetic Portrait:** Hover-tilt morphing portrait card showcasing current inference status.
 * **Physics Tech Stack:** Interactive Matter.js sandbox allowing skill chips to bounce, collide, and be flung.
 * **Lenis Smooth Scroll:** Fluid page navigation with animated pill nav.
-* **Featured Projects:** Deep-dive architectural breakdowns for *Syntera* and *VisionPulse*.
+* **Featured Projects:** Deep-dive architectural breakdowns for *TOTO Project*, *DataMate*, *Syntera*, and *VisionPulse*.
 * **One-Click Email Copy:** Interactive contact card with instant clipboard feedback.
 
 ## 🛠️ Tech Stack

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Sun, Moon, Sparkles, Send, Menu, X } from 'lucide-react';
+import { Sun, Moon, Send, Menu, X } from 'lucide-react';
 
 interface NavigationProps {
   isDark: boolean;
@@ -129,7 +129,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <button
             id="nav-contact-cta"
             onClick={() => scrollToSection('contact')}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-sm transition-all hover:scale-105 active:scale-95"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-sm transition-all hover:scale-105 active:scale-95"
           >
             <Send className="w-3 h-3" />
             <span>Get in Touch</span>

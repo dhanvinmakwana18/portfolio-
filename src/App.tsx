@@ -85,7 +85,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen relative selection:bg-blue-600 selection:text-white ${
+    <div className={`min-h-screen relative selection:bg-blue-500 selection:text-white ${
       isDark ? 'bg-[#09090b] text-[#f4f4f5]' : 'bg-[#fafafa] text-[#18181b]'
     }`}>
       {/* Signature WebGL Flow Shader Backdrop */}

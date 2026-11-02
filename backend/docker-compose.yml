@@ -1,0 +1,19 @@
+services:
+  # From RAG Blueprint
+  rag-blueprint:
+    image: nvcr.io/nvidia/rag:latest
+    environment:
+      - EMBEDDING_MODEL=nv-embedqa-1b
+      - RETRIEVER_MODEL=nemo-retriever-v2
+    volumes:
+      - ./data/csvs:/data/csvs
+    ports:
+      - "8000:8000"
+  
+  # DataMate integration
+  datamate-ingestion:
+    image: datamate/ingestion:latest
+    environment:
+      - RAG_API_URL=http://rag-blueprint:8000
+    depends_on:
+      - rag-blueprint

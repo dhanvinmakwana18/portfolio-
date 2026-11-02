@@ -18,57 +18,81 @@ export const PERSONAL_INFO = {
 
 export const PROJECTS: Project[] = [
   {
-    id: "aerodrift",
-    title: "AeroDrift: Predictive Maintenance & MLOps System",
-    subtitle: "End-to-end ML/MLOps engineering system for aerospace telemetry",
+    id: "project-toto",
+    title: "TOTO: F1 Driver Consistency & Strategy Prediction Engine",
+    subtitle: "Pinnacle F1 telemetry intelligence platform & sub-35ms strategic inference engine",
     category: "MLOps & Predictive AI",
-    badge: "MLOps & ML",
-    description: "An autonomous machine learning lifecycle platform that predicts industrial machine failure, explains risks via SHAP, and autonomously manages data drift and model retraining.",
-    longDescription: `AeroDrift is a portfolio-grade ML engineering system demonstrating the entire lifecycle of an industrial machine learning platform. It ingests aerospace telemetry, predicts imminent failures using XGBoost with calibrated risk probabilities, and provides deterministic SHAP-based explainability. Beyond inference, it features an autonomous MLOps lifecycle: monitoring for data drift via Evidently AI, triggering shadow retraining pipelines, and utilizing a deterministic promotion/rejection gate to safely update production models.
+    badge: "8 Seasons • 150+ GPs • 500k+ Laps",
+    description: "An elite motorsport intelligence engine engineered to Mercedes pit-wall standards. Surgically disentangles pure driver craftsmanship, stint repeatability, and clutch psychological resilience from constructor aerodynamic hegemony across 8 Formula 1 seasons (2018–2025).",
+    longDescription: `TOTO is an elite Formula 1 strategic analytics and performance prediction platform engineered to the demanding operational standards of a Grand Prix pit wall. Operating across 8 complete seasons (2018–2025) and half a million telemetry laps, the system mathematically isolates pure driver consistency, tire thermal degradation preservation, and clutch psychological resilience from constructor aerodynamic advantage.
 
-1. **Problem**: Industrial equipment failures cause massive downtime. Predictive maintenance requires not just a static model, but a self-monitoring system that adapts to data drift without human intervention.
-2. **Solution**: Developed an end-to-end ML/MLOps system featuring streaming inference, continuous monitoring, and automated model promotion gates.
-3. **Architecture**: FastAPI backend, React industrial Control Room, SQLite inference logging, MLflow model registry, and a Python telemetry simulation engine.
-4. **ML Approach**: XGBoost models with temporal feature engineering (EWMA, rolling statistics, operational-condition normalization), baselined against Logistic Regression.
-5. **MLOps Lifecycle**: Automated drift detection (Evidently AI) triggers candidate retraining. The candidate is evaluated against the live model and mathematically promoted/rejected.
-6. **Real NASA Dataset Validation**: Validated on the NASA C-MAPSS dataset (FD001, FD002, FD003, FD004) preventing machine-level and temporal leakage.
-7. **Robustness Experiments**: Conducted severe ablation testing: cross-dataset generalization, operating-condition robustness, sensor ablation, measurement noise injection, and false-alarm analysis.
-8. **Key Results**: Strongest in-domain performance on FD001 (F1: 0.7889, Precision: 0.8638, Recall: 0.7259, ROC-AUC: 0.9969, Brier Score: 0.0074, FPR: 0.0030).
-9. **Important Limitations**: Models trained on single-condition datasets failed severely when transferred to multi-condition environments, proving the necessity of operational normalization.
-10. **GitHub**: Fully open-source local-first architecture.`,
-    problem: "Industrial equipment failures cause massive downtime, and static models quickly degrade from data drift without continuous retraining.",
-    solution: "Developed an autonomous MLOps platform predicting failures with calibrated risk scores, complete with automated drift detection, shadow retraining, and mathematical model promotion gates.",
-    results: "Validated on NASA C-MAPSS dataset, achieving 0.7889 F1, 0.9969 ROC-AUC, and 0.0030 FPR on FD001 with strong resistance to sensor noise.",
-    tags: ["XGBoost", "FastAPI", "MLOps", "MLflow", "Evidently AI", "React", "SHAP", "SQLite", "Python"],
+By coupling an analytical DuckDB lakehouse with a multi-model ensemble—combining CUDA-accelerated XGBoost, LightGBM, and PyTorch Residual DeepNets with an empirical pit strategy simulator—TOTO delivers sub-35ms tactical recommendations and automated AI strategist briefings directly to race engineers.`,
+    problem: "Constructor aerodynamics and power unit disparities account for ~62–66% of raw lap pace variance, masking uncompromised driver talent, tire degradation mastery, and high-stress psychological resilience.",
+    solution: "Architected an 8-season telemetry intelligence platform featuring a DuckDB OLAP warehouse, 42 vectorized consistency features, an ensemble of CUDA-accelerated XGBoost, LightGBM, and PyTorch Residual DeepNet, an undercut/overcut simulator, and a sub-35ms FastAPI engine.",
+    results: "Demonstrated >0.82 holdout AUC-ROC, ~88% strategy simulation precision, and <1.85 finishing position RMSE on unseen 2024–2025 seasons, with Welch t-tests confirming top-10 telemetry features govern >73% of predictive variance.",
+    tags: ["FastF1", "DuckDB", "PyTorch", "XGBoost", "FastAPI", "Streamlit"],
     metrics: [
-      { label: "FD001 F1 Score", value: "0.7889" },
-      { label: "ROC-AUC", value: "0.9969" },
-      { label: "False Positive Rate", value: "0.0030" },
-      { label: "Experiment Suite", value: "Passed 12/12" },
+      { label: "Holdout AUC-ROC", value: "> 0.82" },
+      { label: "Strategy Accuracy", value: "~88%" },
+      { label: "Inference Latency", value: "< 35ms" },
+      { label: "Simulated Windows", value: "50+ / race" },
     ],
     keyFeatures: [
-      "XGBoost predictive maintenance engine with calibrated risk probabilities and temporal EWMA feature engineering.",
-      "Deterministic SHAP explainability tied synchronously to high-risk inference events.",
-      "Autonomous MLOps lifecycle with Evidently AI drift detection, shadow retraining, and mathematical candidate promotion/rejection gates.",
-      "React-based industrial Control Room featuring live telemetry streaming, machine health profiles, and event audit logging."
+      "Multi-Model Ensemble combining CUDA-accelerated XGBoost, LightGBM, and PyTorch Residual DeepNet (TotoDeepNet) with K-Means (k=4) driver behavioral segmentation.",
+      "42 Engineered Telemetry Signals isolating clean-air lap variance, teammate pace deltas, tire degradation slopes, and cold-tire restart execution.",
+      "Quantitative Pit Strategy Simulator delivering live undercut/overcut probability forecasts and stint time-loss curves.",
+      "Sub-35ms FastAPI REST Server integrated with an autonomous LLM AI Strategist and DuckDB + Parquet OLAP warehouse."
     ],
-    architectureOverview: "NASA C-MAPSS Telemetry Stream -> FastAPI Inference Endpoint -> XGBoost / SHAP -> SQLite Event Log -> Evidently AI Background Monitor -> MLflow Registry -> Retraining Worker -> Promotion Gate -> React Control Room.",
-    githubUrl: "https://github.com/DhanvinMakwana/AeroDrift",
+    architectureOverview: "FastF1 & Micro-Climate → DuckDB Analytical OLAP → 42-Signal Vector Engine → PyTorch DeepNet & XGBoost Ensemble → Live Pit Strategist → Sub-35ms FastAPI → Pit-Wall Console",
+    githubUrl: "https://github.com/DhanvinMakwana/project-toto",
     liveUrl: "",
-    image: "https://images.unsplash.com/photo-1544724569-5f546fd6f2b6?auto=format&fit=crop&w=1200&q=80"
+    image: "/images/toto.png"
+  },
+  {
+    id: "datamate",
+    title: "DataMate: Autonomous Multi-Agent Data Science Platform",
+    subtitle: "Sovereign 41-agent castle architecture delivering automated AutoML alchemy & executive boardroom intelligence",
+    category: "MLOps & Predictive AI",
+    badge: "41 Castle Agents • 7 Rooms",
+    description: "A sovereign multi-agent cognitive architecture orchestrating end-to-end data alchemy. Mobilizes 41 specialized agents across 7 fortified functional rooms to autonomously conduct deep exploratory profiling, automated feature engineering, multi-model benchmarking, and boardroom-ready executive PDF dossiers in under 60 seconds.",
+    longDescription: `DataMate is an enterprise-grade autonomous AI data science platform architected under a sovereign "Castle" multi-agent paradigm. Coordinated by a central MCP Brain, the platform mobilizes 41 specialized cognitive agents partitioned across 7 fortified chambers to execute end-to-end data workflows from raw multi-source ingestion to automated feature discovery and executive reporting.
+
+Equipped with Milvus episodic vector memory and integrated with NVIDIA Nemotron, DataMate accelerates exploratory data analysis, hypothesis testing, and competitive AutoML model tournaments from days into under 60 seconds, dynamically outputting publication-grade boardroom PDF dossiers on demand.`,
+    problem: "Enterprise data teams squander over 80% of their cognitive bandwidth on manual data sanitation, ad-hoc exploratory profiling, repetitive model tuning, and static reporting without persistent institutional memory.",
+    solution: "Engineered a sovereign 7-room Castle multi-agent system coordinating 41 specialized cognitive agents under a central MCP Brain to automate data certification, statistical profiling, AutoML benchmarking, and ReportLab PDF dossier generation with Milvus episodic memory.",
+    results: "Accelerated exploratory data science workflows from hours to <60 seconds, eliminated redundant compute via Milvus episodic vector recall, and delivered boardroom-ready executive PDF intelligence reports on demand.",
+    tags: ["Multi-Agent", "NVIDIA Nemotron", "Milvus", "scikit-learn", "Streamlit", "ReportLab"],
+    metrics: [
+      { label: "Agent Network", value: "41 Agents • 7 Rooms" },
+      { label: "Pipeline Speed", value: "< 60s End-to-End" },
+      { label: "Memory Recall", value: "Milvus Episodic" },
+      { label: "Automated Output", value: "Executive PDF" },
+    ],
+    keyFeatures: [
+      "Modular 7-Room Castle Architecture coordinating 41 specialized agents under a central MCP Brain.",
+      "Automated Data Quality & AutoML pipeline performing cleaning, correlation profiling, and multi-model benchmarking.",
+      "Milvus Episodic Vector Memory storing execution runs to eliminate redundant computation and provide historical recall.",
+      "Dynamic Executive PDF Generator producing publication-grade audit reports complete with plots, tables, and AI insights."
+    ],
+    architectureOverview: "Multi-Source Ingestion → Quality Certification → Statistical Profiling → AutoML Tournament → Milvus Episodic Recall → Executive PDF Dossier & Command UI",
+    githubUrl: "https://github.com/DhanvinMakwana/DataMate",
+    liveUrl: "",
+    image: "/images/datamate.png"
   },
   {
     id: "syntera",
     title: "Syntera: Intelligent Retrieval & Grounding & Multi-Modal Engine",
     subtitle: "Enterprise-grade Retrieval-Augmented Generation & Tool-Calling Agent System",
     category: "LLMs & GenAI",
-    badge: "LLM Systems",
+    badge: "128k Context • Qdrant RRF",
     description: "Distributed multimodal agent framework featuring dynamic query routing, self-correcting RAG verification loops, hybrid dense-sparse vector indexing, and tool execution orchestration for complex analytical queries.",
-    longDescription: "Syntera is an end-to-end autonomous reasoning framework designed to overcome hallucination and context-window constraints in large language models. It introduces self-reflective verification layers where candidate answers are cross-examined against retrieved chunk citations before response synthesis. The system seamlessly handles multimodal input (tabular datasets, image charts, technical documents) via combined Vision-Language backbones and custom semantic embeddings.",
+    longDescription: `Syntera is an enterprise-grade autonomous reasoning and grounding framework designed to overcome hallucination and context-window bottlenecks in large language models. The system introduces self-reflective verification layers where candidate inferences are cross-examined against retrieved chunk citations before response synthesis.
+
+Operating across multimodal domains—including technical schematics, financial balance sheets, and tabular datasets—Syntera unifies dense vector search, BM25 lexical indexing, and cross-encoder rerankers to deliver sub-110ms precision retrieval with 128k token context handling.`,
     problem: "LLMs suffer from hallucinations, limited context windows, and inability to interact with multimodal enterprise data effectively.",
     solution: "Built a distributed multimodal agent framework with dynamic routing, self-correcting RAG verification, and hybrid indexing.",
     results: "Achieved <110ms retrieval latency, reduced hallucinations by 42%, and supported 128k token context with 96.4% precision.",
-    tags: ["LLMs", "LangChain", "Transformers", "FastAPI", "VectorDB (Qdrant)", "Python", "LlamaIndex", "vLLM"],
+    tags: ["LangChain", "Transformers", "Qdrant", "FastAPI", "vLLM", "LlamaIndex"],
     metrics: [
       { label: "Retrieval Latency", value: "< 110ms" },
       { label: "Hallucination Reduction", value: "42%" },
@@ -81,7 +105,7 @@ export const PROJECTS: Project[] = [
       "Quantized LLM deployment using vLLM & GGUF formats for low-cost high-throughput GPU serving.",
       "Multimodal document parser analyzing complex PDF tables, flowcharts, and embedded schematics."
     ],
-    architectureOverview: "Client UI / REST -> FastAPI Gateway -> Agent Orchestrator (LangChain / LangGraph) -> Dense/BM25 Hybrid Retrieval (Qdrant & Cross-Encoder Reranker) -> LLM Inference Pipeline (Open-source / OpenAI / Gemini) -> Real-time Token Streaming.",
+    architectureOverview: "Client UI → FastAPI Gateway → LangChain / LangGraph Agent → Qdrant & Cross-Encoder → LLM Pipeline → Streaming",
     githubUrl: "https://github.com/dhanvinmakwana18/syntera19",
     liveUrl: "",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
@@ -91,13 +115,15 @@ export const PROJECTS: Project[] = [
     title: "VisionPulse: Edge-Optimized Real-Time Perception & Defect Detection",
     subtitle: "Ultra-low latency deep learning computer vision pipeline for spatial localization and industrial inspection",
     category: "Computer Vision",
-    badge: "Computer Vision",
+    badge: "65+ FPS Edge TensorRT",
     description: "High-throughput real-time object detection and anomaly localization system optimized for edge devices and video feeds, achieving 60+ FPS inference via TensorRT acceleration and custom anchor-free vision backbones.",
-    longDescription: "VisionPulse delivers industrial-grade real-time computer vision processing for high-speed camera streams and automated defect segmentation. Built on top of customized YOLOv8/v9 architectures with specialized attention modules (CBAM) and multi-scale feature pyramids (BiFPN), it detects micro-scale surface anomalies and object bounding boxes under varying illumination with minimal false positives. The pipeline is compiled with ONNX and TensorRT for edge hardware deployment.",
+    longDescription: `VisionPulse is an ultra-low latency computer vision intelligence pipeline engineered for high-throughput edge inspection and industrial defect detection. Built upon customized anchor-free YOLO architectures with specialized spatial attention gates, it achieves micro-scale anomaly localization across real-time video streams under challenging ambient conditions.
+
+Through INT8/FP16 post-training quantization via TensorRT and multi-threaded OpenCV CUDA buffering, VisionPulse delivers sustained 65+ FPS performance while slashing edge GPU memory consumption by 68%.`,
     problem: "High-speed manufacturing lines require micro-defect detection in real-time, but standard models are too slow or resource-intensive for edge hardware.",
     solution: "Developed a custom anchor-free vision backbone (YOLOv8/v9 based) compiled with TensorRT and ONNX for ultra-low latency inference on edge devices.",
     results: "Attained 65+ FPS edge framerate with a 99.2% mAP@0.5 benchmark, reducing VRAM footprint by 68%.",
-    tags: ["Computer Vision", "PyTorch", "YOLOv8/v9", "OpenCV", "TensorRT", "CUDA", "FastAPI", "Docker"],
+    tags: ["PyTorch", "YOLOv8/v9", "TensorRT", "OpenCV", "CUDA", "FastAPI"],
     metrics: [
       { label: "Edge Framerate", value: "65+ FPS" },
       { label: "mAP@0.5 Benchmark", value: "99.2%" },
@@ -110,7 +136,7 @@ export const PROJECTS: Project[] = [
       "Automated video frame ingestion stream with multi-threaded OpenCV CUDA acceleration.",
       "Active learning triage UI flagging low-confidence frames for human-in-the-loop retraining."
     ],
-    architectureOverview: "RTSP Video Stream -> OpenCV Hardware Decoded Buffer -> TensorRT Pre-processing -> YOLOv8 Attention Backbone -> NMS & Spatial Filtering -> WebSocket Event Dispatcher & Dashboard.",
+    architectureOverview: "RTSP Video Stream → OpenCV CUDA Buffer → TensorRT Preprocessing → YOLOv8 Attention → NMS & Spatial Filter → Dashboard",
     githubUrl: "https://github.com/DhanvinMakwana/VisionPulse-Edge-Perception",
     liveUrl: "",
     image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80"
@@ -212,8 +238,8 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
       {
         name: "Machine Learning",
         description: "Supervised and unsupervised algorithmic modeling, regression, and classification pipelines.",
-        technologies: ["scikit-learn", "XGBoost", "LightGBM", "Model Evaluation"],
-        projectId: "syntera"
+        technologies: ["XGBoost", "LightGBM", "scikit-learn", "Model Ensembles"],
+        projectId: "project-toto"
       },
       {
         name: "Deep Learning",
@@ -231,13 +257,13 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Statistics & Mathematics",
         description: "Probability distributions, hypothesis testing, linear algebra, and calculus foundations.",
         technologies: ["Statistical Inference", "Optimization", "Multivariate Analysis"],
-        projectId: "projects"
+        projectId: "project-toto"
       },
       {
         name: "Data Science",
         description: "End-to-end scientific methodology translating unstructured data into predictive intelligence.",
-        technologies: ["Feature Engineering", "Model Tuning", "Cross-Validation"],
-        projectId: "projects"
+        technologies: ["Feature Engineering", "AutoML", "Model Tuning", "Cross-Validation"],
+        projectId: "datamate"
       }
     ]
   },
@@ -251,31 +277,31 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Data Wrangling",
         description: "Transforming messy raw sources into structured, queryable analytical formats.",
         technologies: ["Pandas", "NumPy", "ETL Workflows"],
-        projectId: "projects"
+        projectId: "datamate"
       },
       {
         name: "Exploratory Data Analysis",
         description: "Uncovering underlying data patterns, anomalies, distributions, and correlations.",
         technologies: ["EDA", "Statistical Summaries", "Visual Profiling"],
-        projectId: "projects"
+        projectId: "datamate"
       },
       {
         name: "Data Cleaning",
         description: "Handling missing variables, deduplication, outlier treatment, and data normalization.",
         technologies: ["Imputation", "Outlier Detection", "Schema Validation"],
-        projectId: "projects"
+        projectId: "datamate"
       },
       {
         name: "Data Preparation",
         description: "Feature encoding, scaling, tokenization, and dataset splitting for ML ingestion.",
         technologies: ["Scaling & Normalization", "One-Hot Encoding", "Tokenization"],
-        projectId: "projects"
+        projectId: "datamate"
       },
       {
         name: "SQL & Data Pipelines",
         description: "Relational database querying, schema structuring, and automated ingestion pipelines.",
-        technologies: ["SQL", "PostgreSQL", "Query Optimization", "Database Design"],
-        projectId: "projects"
+        technologies: ["DuckDB", "SQL", "PostgreSQL", "Query Optimization"],
+        projectId: "project-toto"
       }
     ]
   }
@@ -290,7 +316,7 @@ export const TECH_STACK_GROUPS: TechStackCategory[] = [
   {
     category: "ML / Deep Learning",
     iconName: "Brain",
-    items: ["PyTorch", "TensorFlow", "Keras", "scikit-learn"]
+    items: ["PyTorch", "XGBoost", "LightGBM", "TensorFlow", "scikit-learn"]
   },
   {
     category: "LLM / AI",
@@ -305,12 +331,12 @@ export const TECH_STACK_GROUPS: TechStackCategory[] = [
   {
     category: "Data",
     iconName: "Database",
-    items: ["NumPy", "Pandas", "Matplotlib", "Seaborn"]
+    items: ["DuckDB", "NumPy", "Pandas", "Matplotlib", "Seaborn"]
   },
   {
     category: "Engineering",
     iconName: "Terminal",
-    items: ["Git", "GitHub", "Linux", "REST APIs", "Docker"]
+    items: ["FastAPI", "Docker", "Git", "GitHub", "Linux", "REST APIs"]
   }
 ];
 

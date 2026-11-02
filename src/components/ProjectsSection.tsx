@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { PROJECTS } from '../data/portfolioData';
 import { Project } from '../types';
 import { ProjectModal } from './ProjectModal';
-import { ArrowUpRight, Github, Brain, Eye, Sparkles, Activity, Layers, ExternalLink } from 'lucide-react';
+import { ArrowUpRight, Github, Brain, Eye, Sparkles, Activity, Layers, ExternalLink, Cpu } from 'lucide-react';
 
 interface ProjectsSectionProps {
   isDark: boolean;
@@ -11,6 +11,21 @@ interface ProjectsSectionProps {
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const renderCategoryIcon = (category: Project['category']) => {
+    switch (category) {
+      case 'LLMs & GenAI':
+        return <Brain className="w-3.5 h-3.5 text-blue-400" />;
+      case 'Computer Vision':
+        return <Eye className="w-3.5 h-3.5 text-teal-400" />;
+      case 'MLOps & Predictive AI':
+        return <Activity className="w-3.5 h-3.5 text-amber-400" />;
+      case 'Deep Learning':
+        return <Cpu className="w-3.5 h-3.5 text-purple-400" />;
+      default:
+        return <Sparkles className="w-3.5 h-3.5 text-blue-400" />;
+    }
+  };
 
   return (
     <section
@@ -21,8 +36,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono mb-3 bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Featured AI Engineering Case Studies</span>
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            <span>Featured AI Architectures</span>
           </div>
           <h2 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold font-display tracking-tight ${
             isDark ? 'text-white' : 'text-zinc-900'
@@ -32,21 +47,20 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
           <p className={`mt-3 text-base sm:text-lg max-w-2xl ${
             isDark ? 'text-zinc-400' : 'text-zinc-600'
           }`}>
-            Focusing on production-grade Large Language Model systems (Agentic RAG) and Edge-Optimized Computer Vision perception pipelines.
+            Focusing on production-grade Large Language Model systems (Agentic RAG), Edge-Optimized Computer Vision, and Real-Time Predictive AI / MLOps engines.
           </p>
         </div>
 
         <div className={`text-xs font-mono px-3.5 py-1.5 rounded-full border self-start md:self-auto ${
           isDark ? 'bg-zinc-900/80 text-zinc-400 border-zinc-800' : 'bg-zinc-100 text-zinc-600 border-zinc-200'
         }`}>
-          <span>2 Flagship Implementations</span>
+          <span>{PROJECTS.length} Flagship Implementations</span>
         </div>
       </div>
 
-      {/* Projects Grid: 2 High-Craft Key Projects */}
+      {/* Projects Grid: High-Craft Key Projects */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {PROJECTS.map((project, index) => {
-          const isLLM = project.category === 'LLMs & GenAI';
           return (
             <motion.div
               key={project.id}
@@ -58,7 +72,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
               whileHover={{ y: -6 }}
               className={`group relative rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
                 isDark
-                  ? 'bg-zinc-900/60 hover:bg-zinc-900/90 border-zinc-800/80 hover:border-zinc-700 shadow-xl shadow-black/40 hover:shadow-2xl'
+                  ? 'bg-zinc-900/60 hover:bg-zinc-900/90 border-zinc-800/80 hover:border-blue-500/50 shadow-xl shadow-black/40 hover:shadow-2xl hover:shadow-blue-500/10'
                   : 'bg-white/80 hover:bg-white border-zinc-200/90 hover:border-zinc-300 shadow-lg shadow-zinc-200/50 hover:shadow-xl'
               } backdrop-blur-lg`}
             >
@@ -68,7 +82,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
                   src={project.image}
                   alt={project.title}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-90"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-75 group-hover:opacity-95"
                 />
 
                 {/* Gradient Overlays */}
@@ -77,11 +91,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
                 {/* Floating Top Badges */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-zinc-900/90 border border-zinc-700/70 text-zinc-200 backdrop-blur-md">
-                    {isLLM ? (
-                      <Brain className="w-3.5 h-3.5 text-blue-400" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5 text-teal-400" />
-                    )}
+                    {renderCategoryIcon(project.category)}
                     <span>{project.category}</span>
                   </div>
 
@@ -91,45 +101,50 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ isDark }) => {
                 </div>
 
                 {/* Key Metrics Chips on bottom of image */}
-                <div className="absolute bottom-4 left-4 right-4 grid grid-cols-2 gap-2 z-10">
-                  {project.metrics.slice(0, 2).map((metric, i) => (
+                <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10 overflow-x-auto no-scrollbar">
+                  {project.metrics.slice(0, 2).map((m, idx) => (
                     <div
-                      key={i}
-                      className="px-3 py-1.5 rounded-xl bg-zinc-900/85 border border-zinc-700/60 backdrop-blur-md"
+                      key={idx}
+                      className="px-3 py-1.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md text-xs font-mono flex items-center gap-2"
                     >
-                      <div className="text-[10px] font-mono text-zinc-400">{metric.label}</div>
-                      <div className="text-sm font-bold font-display text-white">{metric.value}</div>
+                      <span className="text-zinc-400 text-[10px]">{m.label}</span>
+                      <span className="text-blue-400 font-bold">{m.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Project Content Area */}
-              <div className="p-6 sm:p-8 flex flex-col flex-grow justify-between">
+              <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className={`text-2xl font-bold font-display tracking-tight mb-2 group-hover:text-blue-400 transition-colors ${
+                  <h3 className={`text-xl sm:text-2xl font-bold font-display tracking-tight mb-2 group-hover:text-blue-400 transition-colors ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     {project.title}
                   </h3>
 
-                  <p className={`text-sm leading-relaxed mb-6 ${
-                    isDark ? 'text-zinc-300' : 'text-zinc-600'
+                  <p className={`text-sm sm:text-base leading-relaxed mb-6 ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-600'
                   }`}>
                     {project.description}
                   </p>
 
-                  {/* Architecture quick preview */}
-                  <div className={`p-3.5 rounded-2xl mb-6 border font-mono text-xs ${
-                    isDark ? 'bg-zinc-950/60 border-zinc-800 text-zinc-400' : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                  {/* Architecture Flow Box */}
+                  <div className={`p-3.5 rounded-xl border mb-6 text-xs font-mono ${
+                    isDark
+                      ? 'bg-zinc-950/60 border-zinc-800/80 text-zinc-300'
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-700'
                   }`}>
-                    <div className="flex items-center gap-1.5 text-indigo-400 font-semibold mb-1">
-                      <Layers className="w-3.5 h-3.5" /> Pipeline Architecture
+                    <div className="flex items-center gap-1.5 text-[11px] text-blue-400 font-semibold mb-1">
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>Pipeline Architecture</span>
                     </div>
-                    <p className="line-clamp-2">{project.architectureOverview}</p>
+                    <div className="truncate text-zinc-400">
+                      {project.architectureOverview}
+                    </div>
                   </div>
 
-                  {/* Tags */}
+                  {/* Tech Badges */}
                   <div className="flex flex-wrap gap-1.5 mb-6">
                     {project.tags.map((tag, idx) => (
                       <span

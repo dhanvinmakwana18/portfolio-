@@ -82,13 +82,21 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           </div>
 
           {/* Detailed Description */}
-          <div className="mb-6">
-            <h3 className="text-sm font-bold font-mono tracking-wider text-zinc-400 uppercase mb-2 flex items-center gap-1.5">
+          <div className={`p-5 sm:p-6 rounded-2xl mb-6 border ${
+            isDark 
+              ? 'bg-zinc-950/60 border-zinc-800/80' 
+              : 'bg-zinc-50 border-zinc-200'
+          }`}>
+            <h3 className="text-xs font-bold font-mono tracking-wider text-blue-400 uppercase mb-3 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-blue-400" /> Executive Overview
             </h3>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-              {project.longDescription}
-            </p>
+            <div className="space-y-3.5 text-sm sm:text-base leading-relaxed">
+              {project.longDescription.split('\n\n').map((paragraph, idx) => (
+                <p key={idx} className={isDark ? 'text-zinc-300' : 'text-zinc-700'}>
+                  {paragraph.trim()}
+                </p>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

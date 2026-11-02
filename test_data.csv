@@ -1,0 +1,6 @@
+customer_id,revenue,region,churn
+1,1000,USA,no
+2,2000,EU,yes
+3,1500,ASIA,no
+4,3000,USA,no
+5,2500,EU,yes

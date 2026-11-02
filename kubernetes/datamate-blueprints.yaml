@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datamate-blueprints
+data:
+  RAG_ENDPOINT: http://rag-blueprint:8000
+  FLYWHEEL_ENDPOINT: http://flywheel:8001
+  RESEARCHER_ENDPOINT: http://researcher:8002
+  RAPIDS_GPU: "true"
+  MILVUS_HOST: milvus
+  NIM_REGISTRY: nvcr.io/nim
+
+---
+# Deploy all services (Pseudocode for standard docker compose integration in k8s)
+apiVersion: docker.compose/v1
+services:
+  rag-blueprint:
+    image: nvcr.io/nvidia/rag:latest
+    # ... config from RAG blueprint
+  
+  flywheel:
+    image: nvcr.io/nvidia/flywheel:latest
+    # ... config from Flywheel blueprint
+  
+  researcher:
+    image: nvcr.io/nvidia/agents:latest
+    # ... config from Agent blueprint

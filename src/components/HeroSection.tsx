@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { PERSONAL_INFO } from '../data/portfolioData';
-import { ArrowRight, Copy, Check, Terminal, Sparkles, Brain, Eye, Download } from 'lucide-react';
+import { ArrowRight, Copy, Check, Sparkles, Brain, Eye } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface HeroSectionProps {
@@ -42,12 +42,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           className="w-full flex flex-col items-start text-left"
         >
           {/* Status Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6 text-xs font-mono backdrop-blur-md transition-all border border-blue-500/20 bg-blue-500/10 text-blue-400">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-6 text-xs font-mono backdrop-blur-md transition-all border border-blue-500/20 bg-blue-500/10 text-blue-400">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span>AI Engineer & Data Scientist • Yuvaintern DS</span>
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            <span>Available for High-Impact AI Roles & Research Collaborations</span>
           </div>
 
           {/* Main Title */}
@@ -72,8 +73,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           }`}>
             {PERSONAL_INFO.bio}
           </p>
-
-
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap items-center gap-4 sm:gap-5 mb-12">

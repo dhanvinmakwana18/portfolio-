@@ -1,0 +1,28 @@
+# Nemotron-3-8B NIM
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemotron-brain-nim
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: nim
+        image: nvcr.io/nim/meta-llama/llama-3.1-8b-instruct:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+
+---
+# Service to expose NIM
+apiVersion: v1
+kind: Service
+metadata:
+  name: nemotron-brain-nim
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: nemotron-brain-nim
