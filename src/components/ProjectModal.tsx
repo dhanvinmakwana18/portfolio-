@@ -16,13 +16,24 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   onClose,
   isDark,
 }) => {
+  // Lock background body scroll when the case study modal is open
+  React.useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen || !project) return null;
 
   return (
     <AnimatePresence>
       <div
         id="project-modal-backdrop"
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-md"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       >
         <motion.div
@@ -31,7 +42,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className={`relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8 shadow-2xl border ${
+          className={`relative w-full max-w-3xl max-h-[85vh] overflow-y-auto overscroll-contain rounded-3xl p-6 sm:p-8 shadow-2xl border ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-100'
               : 'bg-white border-zinc-200 text-zinc-900'
