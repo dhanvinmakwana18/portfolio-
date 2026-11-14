@@ -236,6 +236,24 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
     theme: "blue",
     skills: [
       {
+        name: "Physics-Informed ML & Prognostics",
+        description: "Coupling analytical thermodynamic wear laws with causal nonlinear least-squares & sequence models.",
+        technologies: ["Levenberg-Marquardt NLS", "Wear Physics Modeling", "RUL Prognostics", "Analytical Jacobians"],
+        projectId: "star-wars"
+      },
+      {
+        name: "Federated Learning & Distributed AI",
+        description: "Decentralized model training via FedAvg across non-IID client silos without raw data transfer.",
+        technologies: ["FedAvg Algorithm", "Decentralized Aggregation", "Non-IID Regime Skew", "Client Partitioning"],
+        projectId: "star-wars"
+      },
+      {
+        name: "Uncertainty Quantification",
+        description: "Distribution-free conformal calibration and epistemic variance estimation for mission-critical decisions.",
+        technologies: ["Split-Conformal Prediction", "MC Dropout", "Asymmetric Safety Loss", "Coverage Guarantees"],
+        projectId: "star-wars"
+      },
+      {
         name: "Machine Learning",
         description: "Supervised and unsupervised algorithmic modeling, regression, and classification pipelines.",
         technologies: ["XGBoost", "LightGBM", "scikit-learn", "Model Ensembles"],
@@ -243,15 +261,9 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
       },
       {
         name: "Deep Learning",
-        description: "Designing and training deep multi-layer neural architectures for complex representations.",
-        technologies: ["PyTorch", "TensorFlow", "Keras", "Backpropagation"],
+        description: "Designing and training deep multi-layer neural architectures for complex temporal representations.",
+        technologies: ["BiLSTM + Attention", "Dilated 1D-CNN", "PyTorch", "Sequence Windows"],
         projectId: "star-wars"
-      },
-      {
-        name: "Python",
-        description: "Core language ecosystem for scalable AI modeling, data pipelines, and backend APIs.",
-        technologies: ["Python", "NumPy", "Pandas", "FastAPI"],
-        projectId: "syntera"
       },
       {
         name: "Statistics & Mathematics",

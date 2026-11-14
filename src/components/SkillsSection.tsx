@@ -17,7 +17,9 @@ import {
   Sliders,
   TrendingUp,
   Bot,
-  Network
+  Network,
+  Activity,
+  ShieldCheck
 } from 'lucide-react';
 
 interface SkillsSectionProps {
@@ -57,6 +59,12 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({ isDark }) => {
         return <Eye className="w-4 h-4 text-cyan-400" />;
       
       // Tier 2
+      case 'Physics-Informed ML & Prognostics':
+        return <Activity className="w-4 h-4 text-sky-400" />;
+      case 'Federated Learning & Distributed AI':
+        return <Network className="w-4 h-4 text-cyan-400" />;
+      case 'Uncertainty Quantification':
+        return <ShieldCheck className="w-4 h-4 text-emerald-400" />;
       case 'Machine Learning':
         return <Brain className="w-4 h-4 text-blue-400" />;
       case 'Deep Learning':
