@@ -40,7 +40,34 @@ An elite, high-performance interactive portfolio engineered for **Dhanvin Makwan
 
 ---
 
-### 2. DataMate: Autonomous Multi-Agent Data Science Platform
+### 2. STAR WARS: NASA C-MAPSS Turbofan RUL & Fleet Intelligence Engine
+> *Multi-regime aerospace propulsion prognostics & uncertainty-calibrated fleet maintenance optimizer across all 4 NASA C-MAPSS benchmarks.*
+
+* **Scale:** 4 Benchmark Subsets (`FD001`–`FD004`) • 709 Training / 707 Test Engines • 6 Flight Regimes • 2 Fault Modes
+* **Key Metrics:**
+  * **Unified BiLSTM RMSE:** `13.90 / 14.37 / 13.44 / 14.69` across `FD001`–`FD004` (outperforming Zheng et al. 2017 on all 4 subsets & Li et al. 2018 by `35.7%–37.0%` RMSE on `FD002`/`FD004`)
+  * **Regime Conditioning Gain:** `-46.2%` `FD002` XGBoost NASA Score (`2,198.5 → 1,182.1`) and `-28.9%` `FD004` Deep 1D-CNN Score via `KMeans (k=6)`
+  * **Fleet Maintenance Impact:** `-45.5%` annual fleet cost (`$110.82M/yr` savings vs. Fixed-150; `$86.36M/yr` vs. Best-Fixed 140) with `0` unplanned failures (`0 vs. 6`)
+  * **Uncertainty & QA:** `90%` Split-Conformal Prediction Intervals • MC Dropout • `26/26` `pytest` checks passing
+* **Core Stack:** `PyTorch (Deep 1D-CNN, Attention BiLSTM, Unified BiLSTM)`, `XGBoost`, `scikit-learn`, `Conformal Prediction`, `SHAP`, `Streamlit`
+* **Architecture Pipeline:**
+  ```text
+  NASA C-MAPSS 21 Sensors (FD001–FD004)
+         ↓
+  Empirical Variance Pruning (21 → 14 Informative Sensors)
+         ↓
+  Operating-Regime K-Means (k=6) Normalization (Eliminating Altitude/Mach/TRA Masking)
+         ↓
+  Multi-Scale Feature & Sequence Windowing + Asymmetric NASA Scoring
+         ↓
+  Benchmark Suite (RF, XGBoost, Deep 1D-CNN, Attention BiLSTM, Unified BiLSTM)
+         ↓
+  MC Dropout & Split-Conformal 90% CI → Fleet Cost Optimizer → 4-Tab Streamlit Console
+  ```
+
+---
+
+### 3. DataMate: Autonomous Multi-Agent Data Science Platform
 > *Sovereign 41-agent castle architecture delivering automated AutoML alchemy & executive boardroom intelligence.*
 
 * **Key Metrics:**
@@ -68,7 +95,7 @@ An elite, high-performance interactive portfolio engineered for **Dhanvin Makwan
 
 ---
 
-### 3. Syntera: Multimodal Agentic RAG & Grounding Engine
+### 4. Syntera: Multimodal Agentic RAG & Grounding Engine
 > *Distributed multimodal reasoning framework with dynamic routing and self-reflective verification loops.*
 
 * **Key Metrics:**
@@ -80,16 +107,6 @@ An elite, high-performance interactive portfolio engineered for **Dhanvin Makwan
   * Dynamic Query Router classifying requests for direct generation vs. domain-specific vector stores.
   * Self-Correction & Citation Grounding loops validating inferences against retrieved source chunks.
   * Multimodal parser analyzing complex tabular datasets, financial balance sheets, and PDF schematics.
-
----
-
-### 4. VisionPulse: Edge-Optimized Multi-Camera Vision Engine
-> *High-throughput edge vision platform optimized with NVIDIA TensorRT and multi-stream RTSP decoding.*
-
-* **Key Metrics:**
-  * **Throughput:** `60+ FPS` across concurrent multi-camera streams
-  * **Edge Latency:** `< 14ms` on embedded Jetson / RTX hardware
-* **Core Stack:** `YOLOv11`, `TensorRT`, `DeepStream`, `OpenCV`, `FastAPI`
 
 ---
 

@@ -49,6 +49,37 @@ By coupling an analytical DuckDB lakehouse with a multi-model ensemble—combini
     image: "/images/toto.png"
   },
   {
+    id: "star-wars",
+    title: "STAR WARS: NASA C-MAPSS Turbofan RUL & Fleet Intelligence Engine",
+    subtitle: "Multi-regime aerospace propulsion prognostics & uncertainty-calibrated fleet maintenance optimizer",
+    category: "Deep Learning",
+    badge: "4 Subsets • 709 Engines • 6 Regimes",
+    description: "A production aerospace prognostics & fleet maintenance intelligence engine spanning all 4 NASA C-MAPSS turbofan subsets (FD001–FD004). Eliminates regime masking via K-Means (k=6) conditioning, benchmarks Deep 1D-CNN, Attention BiLSTM, and Unified architectures with 90% conformal uncertainty bounds, and cuts simulated annual fleet costs by 45.5%.",
+    longDescription: `STAR WARS is an end-to-end aerospace propulsion prognostics and fleet maintenance decision platform engineered across the complete NASA C-MAPSS benchmark (FD001–FD004: 709 training and 707 test turbofan engines). Operating across up to 6 flight regimes (altitude, Mach, TRA) and 2 concurrent fault modes (HPC & Fan degradation), the pipeline strips non-informative telemetry via empirical variance pruning and applies operating-regime K-Means (k=6) normalization so pure engine degradation slopes emerge clearly.
+
+Combining regime-conditioned feature engineering with Random Forest, XGBoost, Deep 1D-CNN, Bidirectional LSTM with Temporal Attention, and a single Unified cross-domain BiLSTM—backed by MC Dropout, split-conformal 90% prediction intervals, and an asymmetric NASA cost simulator—STAR WARS translates sensor streams into zero-failure maintenance schedules inside an interactive 4-tab Streamlit command console.`,
+    problem: "Varying flight regimes (altitude, Mach number, throttle resolver angle) mask subtle component degradation signals in multi-regime turbofan fleets, while standard symmetric MSE training severely under-penalizes late Remaining Useful Life (RUL) predictions that risk catastrophic unscheduled engine failures.",
+    solution: "Engineered an end-to-end prognostics pipeline combining variance-based pruning of 7 flat sensors, operating-regime K-Means (k=6) sensor normalization, multi-scale rolling/EWMA telemetry features, and a benchmark suite spanning Random Forest, XGBoost, Deep 1D-CNN, Attention BiLSTM, and a Unified BiLSTM calibrated with MC Dropout & 90% conformal intervals.",
+    results: "Achieved 13.90 / 14.37 / 13.44 / 14.69 RMSE across FD001–FD004 with the Unified BiLSTM—outperforming Zheng et al. (2017) on all 4 subsets and beating Li et al. (2018) on FD002/FD004 by 35.7%–37.0% RMSE and 91.9%–92.6% NASA Score—while cutting simulated annual 300-engine fleet costs by 45.5% ($110.82M/yr savings vs. Fixed-150) with zero unplanned failures.",
+    tags: ["PyTorch", "XGBoost", "scikit-learn", "Conformal AI", "SHAP", "Streamlit"],
+    metrics: [
+      { label: "Unified RMSE (FD001–04)", value: "13.44–14.69" },
+      { label: "Fleet Cost Savings", value: "-45.5% ($110.82M)" },
+      { label: "Regime Score Gain", value: "-46.2% FD002" },
+      { label: "Reliability Suite", value: "26/26 Tests • 90% CI" },
+    ],
+    keyFeatures: [
+      "Operating-Regime K-Means (k=6) Normalization cutting FD002 XGBoost NASA Score by 46.2% (2,198.5 → 1,182.1) and FD004 Deep 1D-CNN NASA Score by 28.9%.",
+      "Multi-Model Deep & Tabular Suite spanning Random Forest, XGBoost, Deep 1D-CNN, Attention BiLSTM, and a cross-domain Unified BiLSTM across 709 engines.",
+      "Uncertainty & Asymmetric Prognostics combining Saxena et al. (2008) NASA asymmetric scoring, MC Dropout epistemic variance, and 90% split-conformal intervals.",
+      "Fleet Maintenance Cost Simulator & 4-Tab Streamlit Console proving zero unplanned failures (0 vs. 6) and $110.82M/yr annual savings on a 300-engine fleet."
+    ],
+    architectureOverview: "C-MAPSS 21 Sensors → Variance Pruning (14) → K-Means (k=6) Norm → 1D-CNN / Attention BiLSTM → MC Dropout & Conformal 90% CI → Fleet Cost Optimizer → 4-Tab Console",
+    githubUrl: "",
+    liveUrl: "",
+    image: "/images/starwars.jpg"
+  },
+  {
     id: "datamate",
     title: "DataMate: Autonomous Multi-Agent Data Science Platform",
     subtitle: "Sovereign 41-agent castle architecture delivering automated AutoML alchemy & executive boardroom intelligence",
@@ -110,37 +141,6 @@ Operating across multimodal domains—including technical schematics, financial 
     liveUrl: "",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
   },
-  {
-    id: "vision-pulse",
-    title: "VisionPulse: Edge-Optimized Real-Time Perception & Defect Detection",
-    subtitle: "Ultra-low latency deep learning computer vision pipeline for spatial localization and industrial inspection",
-    category: "Computer Vision",
-    badge: "65+ FPS Edge TensorRT",
-    description: "High-throughput real-time object detection and anomaly localization system optimized for edge devices and video feeds, achieving 60+ FPS inference via TensorRT acceleration and custom anchor-free vision backbones.",
-    longDescription: `VisionPulse is an ultra-low latency computer vision intelligence pipeline engineered for high-throughput edge inspection and industrial defect detection. Built upon customized anchor-free YOLO architectures with specialized spatial attention gates, it achieves micro-scale anomaly localization across real-time video streams under challenging ambient conditions.
-
-Through INT8/FP16 post-training quantization via TensorRT and multi-threaded OpenCV CUDA buffering, VisionPulse delivers sustained 65+ FPS performance while slashing edge GPU memory consumption by 68%.`,
-    problem: "High-speed manufacturing lines require micro-defect detection in real-time, but standard models are too slow or resource-intensive for edge hardware.",
-    solution: "Developed a custom anchor-free vision backbone (YOLOv8/v9 based) compiled with TensorRT and ONNX for ultra-low latency inference on edge devices.",
-    results: "Attained 65+ FPS edge framerate with a 99.2% mAP@0.5 benchmark, reducing VRAM footprint by 68%.",
-    tags: ["PyTorch", "YOLOv8/v9", "TensorRT", "OpenCV", "CUDA", "FastAPI"],
-    metrics: [
-      { label: "Edge Framerate", value: "65+ FPS" },
-      { label: "mAP@0.5 Benchmark", value: "99.2%" },
-      { label: "Inference Footprint", value: "-68% VRAM" },
-      { label: "Detection Latency", value: "14.2ms" },
-    ],
-    keyFeatures: [
-      "Custom anchor-free convolutional backbone with spatial attention gates for micro-defect segmentation.",
-      "FP16/INT8 post-training quantization pipeline via TensorRT and ONNX Runtime.",
-      "Automated video frame ingestion stream with multi-threaded OpenCV CUDA acceleration.",
-      "Active learning triage UI flagging low-confidence frames for human-in-the-loop retraining."
-    ],
-    architectureOverview: "RTSP Video Stream → OpenCV CUDA Buffer → TensorRT Preprocessing → YOLOv8 Attention → NMS & Spatial Filter → Dashboard",
-    githubUrl: "https://github.com/DhanvinMakwana/VisionPulse-Edge-Perception",
-    liveUrl: "",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80"
-  }
 ];
 
 export const EXPERIENCES: ExperienceItem[] = [
@@ -225,7 +225,7 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Computer Vision",
         description: "Real-time object detection, segmentation, and visual classification systems.",
         technologies: ["OpenCV", "YOLO", "CNNs", "Vision Transformers"],
-        projectId: "vision-pulse"
+        projectId: "syntera"
       }
     ]
   },
@@ -245,7 +245,7 @@ export const COMPETENCY_TIERS: CompetencyTier[] = [
         name: "Deep Learning",
         description: "Designing and training deep multi-layer neural architectures for complex representations.",
         technologies: ["PyTorch", "TensorFlow", "Keras", "Backpropagation"],
-        projectId: "vision-pulse"
+        projectId: "star-wars"
       },
       {
         name: "Python",
