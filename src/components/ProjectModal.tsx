@@ -16,13 +16,42 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   onClose,
   isDark,
 }) => {
-  // Lock background body scroll when the case study modal is open
+  const modalCardRef = React.useRef<HTMLDivElement>(null);
+
+  // Lock background body/html scroll and stop Lenis smooth scroll while modal is active
   React.useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      const lenis = (window as any).__lenis;
+      if (lenis && typeof lenis.stop === 'function') {
+        lenis.stop();
+      }
+
+      // Stop wheel and touchmove events from escaping to the outer window
+      const cardEl = modalCardRef.current;
+      const stopScrollPropagation = (e: Event) => {
+        e.stopPropagation();
+      };
+
+      if (cardEl) {
+        cardEl.addEventListener('wheel', stopScrollPropagation, { passive: false });
+        cardEl.addEventListener('touchmove', stopScrollPropagation, { passive: false });
+      }
+
       return () => {
-        document.body.style.overflow = originalOverflow;
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        if (lenis && typeof lenis.start === 'function') {
+          lenis.start();
+        }
+        if (cardEl) {
+          cardEl.removeEventListener('wheel', stopScrollPropagation);
+          cardEl.removeEventListener('touchmove', stopScrollPropagation);
+        }
       };
     }
   }, [isOpen]);
@@ -33,15 +62,20 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     <AnimatePresence>
       <div
         id="project-modal-backdrop"
+        data-lenis-prevent="true"
         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
         onClick={onClose}
+        onWheel={(e) => e.stopPropagation()}
       >
         <motion.div
+          ref={modalCardRef}
+          data-lenis-prevent="true"
           initial={{ opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
           className={`relative w-full max-w-3xl max-h-[85vh] overflow-y-auto overscroll-contain rounded-3xl p-6 sm:p-8 shadow-2xl border ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-100'
